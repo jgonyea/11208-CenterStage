@@ -1,4 +1,7 @@
-package org.firstinspires.ftc.teamcode;
+/**
+ * Driver-controlled routine.
+ */
+package org.firstinspires.ftc.teamcode.teamcode11208;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -7,32 +10,28 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 
 
-@TeleOp
+@TeleOp(name="TeleOp")
 public class KardiaTeleOp extends OpMode {
 
     DcMotor liftMotorL;
     DistanceSensor distL;
     DistanceSensor distR;
-    Locomotion motionUtil;
-    Lift liftUtil;
+    DriveTrain drive;
+    Lift lift;
 
     @Override
     public void init(){
         liftMotorL = hardwareMap.get(DcMotor.class, "lifeL");
-        motionUtil.init();
+        drive.init();
     }
 
     @Override
     public void loop(){
-        motionUtil.moveRobot(gamepad1, distL, distR);
-        liftUtil.moveLift(gamepad2);
-    }
-
-    // Calculates power to motors based on GP1 thumbsticks.
-    public void locomotion(){
+        drive.moveRobot(gamepad1, distL, distR);
+        lift.moveLift(gamepad2);
 
 
-
-
+        telemetry.addData("Label", "Data");
+        telemetry.update();
     }
 }
