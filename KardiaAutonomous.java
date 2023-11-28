@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Autonomous")
+@Autonomous(name="KardiaAutonomous")
 public class KardiaAutonomous extends LinearOpMode {
 
     ElapsedTime gameTimer;
@@ -23,11 +23,11 @@ public class KardiaAutonomous extends LinearOpMode {
 
         // Autonomous routine here.
         while (opModeIsActive()) {
-
-
             if (gameTimer.seconds() > 30.0){
-                requestOpModeStop();
+                requestOpModeStop();  // Todo: Is this correct?
             }
+
+            // Todo: Move robot to end-goal destination.
         }
 
         telemetry.addData("Label", "Data");

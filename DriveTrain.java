@@ -22,7 +22,7 @@ public class DriveTrain {
     double MAX_DIST = 1000;
 
     public void init(){
-        // todo: Add drivetrain motor config initializations.
+        // todo: Add drivetrain motor config init.
     }
     public void moveRobot(Gamepad gamepad1, DistanceSensor distL, DistanceSensor distR) {
 
