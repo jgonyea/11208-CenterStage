@@ -11,7 +11,10 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 @TeleOp(name="KardiaTeleOp")
 public class KardiaTeleOp extends OpMode {
-
+    DcMotor frontRight;
+    DcMotor frontLeft;
+    DcMotor rearRight;
+    DcMotor rearLeft;
     DcMotor liftMotorL;
     DcMotor liftMotorR;
     DistanceSensor distL;
@@ -25,12 +28,14 @@ public class KardiaTeleOp extends OpMode {
         liftMotorL = hardwareMap.get(DcMotor.class, "liftL");
         liftMotorR = hardwareMap.get(DcMotor.class, "liftR");
 
+        frontLeft = hardwareMap.get(DcMotor.class, "driveFL");
+        frontRight = hardwareMap.get(DcMotor.class, "driveFR");
+        rearLeft = hardwareMap.get(DcMotor.class, "driveRL");
+        rearRight = hardwareMap.get(DcMotor.class, "driveRR");
+
         // Class initializations.
         lift.init(liftMotorL, liftMotorR);
-
-        //drivetrain.init();  // Todo: Do we need a full robot class to pass around the data fully?
-
-
+        drivetrain.init(telemetry, frontLeft, frontRight, rearLeft, rearRight);  // Todo: Do we need a full robot class to pass around the data fully?
 
 
 
