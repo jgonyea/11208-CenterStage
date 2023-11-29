@@ -23,7 +23,7 @@ public class KardiaTeleOp extends OpMode {
     public void init() {
         // Hardware mapping.
         liftMotorL = hardwareMap.get(DcMotor.class, "liftL");
-        //this.liftRight = hardwareMap.get(DcMotor.class, "liftR");
+        liftMotorR = hardwareMap.get(DcMotor.class, "liftR");
 
         // Class initializations.
         lift.init(liftMotorL, liftMotorR);
@@ -40,6 +40,7 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("LiftL Mode: ", liftMotorL.getMode());
         telemetry.addData("LiftL Current Pos: ", liftMotorL.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorL.getTargetPosition());
+        telemetry.addData("Motor NoPower Type", liftMotorL.getZeroPowerBehavior());
     }
 
     @Override
@@ -58,6 +59,8 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("LiftL Mode: ", liftMotorL.getMode());
         telemetry.addData("LiftL Current Pos: ", liftMotorL.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorL.getTargetPosition());
+        telemetry.addData("Motor NoPower Type", liftMotorL.getZeroPowerBehavior());
+
         telemetry.update();
     }
 }

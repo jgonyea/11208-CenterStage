@@ -11,11 +11,10 @@ public class Lift {
 
     public DcMotor liftLeft;
     public DcMotor liftRight;
-    private int liftTarget;
+    private double liftTarget;
 
     // Encoder ticks for one full revolution.
-    // Todo: Check tickrates with actual specsheets.
-    public double ENCODER_TICKRATE = 28;
+    public double ENCODER_TICKRATE = 384.5;
 
 
     public void init(DcMotor liftLeft, DcMotor liftRight){
@@ -23,32 +22,39 @@ public class Lift {
         this.liftRight = liftRight;
 
         // Number of turns to reach full lift extension.
-        // Todo: find the actual value
-        liftTarget = 1;
+        liftTarget = 5.0;
 
         // Note: Hardware mapping must be performed in OpMode/ LinearOpMode classes.
 
-        // todo: Add lift motor/ encoder config init.
         this.liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.liftLeft.setTargetPosition(encodeTarget(liftTarget));
         this.liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Todo: Add right lift.
 
+        this.liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.liftRight.setTargetPosition(encodeTarget(liftTarget));
+        this.liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.liftRight.setDirection(DcMotor.Direction.REVERSE);
+        this.liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void moveLift(Gamepad gp){
         // Set lift target.
         if (gp.right_trigger > gp.left_trigger) {
             this.liftLeft.setTargetPosition(encodeTarget(liftTarget));
+            this.liftRight.setTargetPosition(encodeTarget(liftTarget));
         } else if (gp.right_trigger < gp.left_trigger){
             this.liftLeft.setTargetPosition(0);
+            this.liftRight.setTargetPosition(0);
         }
-        this.liftLeft.setPower(gp.right_trigger - gp.left_trigger);
 
-        // Todo: Add right lift.
+        // Set power for Lift motors
+        this.liftLeft.setPower(gp.right_trigger - gp.left_trigger);
+        this.liftRight.setPower(gp.right_trigger - gp.left_trigger);
+
     }
 
     private int encodeTarget(double turns){
