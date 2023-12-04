@@ -4,6 +4,12 @@
 package org.firstinspires.ftc.teamcode.teamcode11208;
 
 
+import com.qualcomm.robotcore.hardware.Servo;
+
 public class Effector {
-    // Todo: All of effector code.
+    Servo armRotator;
+    Servo handRotator;
+    Servo leftActuator;
+    Servo rightActuator;
+
 }
