@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
 @TeleOp(name="KardiaTeleOp")
@@ -17,6 +18,12 @@ public class KardiaTeleOp extends OpMode {
     DistanceSensor distL;
     DistanceSensor distR;
     DriveTrain drivetrain;
+    Servo armRotatorLeft;
+    Servo armRotatorRight;
+    Servo handRotator;
+    Servo leftActuator;
+    Servo rightActuator;
+    Effector effector;
     Lift lift = new Lift();
 
     @Override
@@ -25,13 +32,17 @@ public class KardiaTeleOp extends OpMode {
         liftMotorL = hardwareMap.get(DcMotor.class, "liftL");
         liftMotorR = hardwareMap.get(DcMotor.class, "liftR");
 
+        armRotatorLeft = hardwareMap.get(Servo.class, "armL");
+        armRotatorRight = hardwareMap.get(Servo.class, "armR");
+        handRotator = hardwareMap.get(Servo.class, "hand");
+        leftActuator = hardwareMap.get(Servo.class, "gripL");
+        rightActuator = hardwareMap.get(Servo.class, "gripR");
+
+
         // Class initializations.
         lift.init(liftMotorL, liftMotorR);
-
+        effector.init(armRotatorLeft, armRotatorRight, handRotator, leftActuator, rightActuator);
         //drivetrain.init();  // Todo: Do we need a full robot class to pass around the data fully?
-
-
-
 
 
         // Debug.  Todo: Remove before competition.
@@ -46,9 +57,8 @@ public class KardiaTeleOp extends OpMode {
     @Override
     public void loop() {
         //drivetrain.moveRobot(gamepad1, distL, distR);
-        lift.moveLift(gamepad2);
-
-
+        lift.moveLift(gamepad1);  // gamepad2 triggers are used by moveEffector
+        effector.moveEffector(gamepad2);
 
 
         // Debug.  Todo: Remove before competition.
@@ -60,7 +70,5 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("LiftL Current Pos: ", liftMotorL.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorL.getTargetPosition());
         telemetry.addData("Motor NoPower Type", liftMotorL.getZeroPowerBehavior());
-
-        telemetry.update();
     }
 }
