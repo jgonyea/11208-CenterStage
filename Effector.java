@@ -35,10 +35,15 @@ public class Effector {
         rightActuator.scaleRange(CLOSED_POSITION, GRIP_POSITION);
     }
 
-    public void moveRobot(Gamepad gamepad2) {
-        double newTargetPosition = armRotatorLeft.getPosition() + (gamepad2.left_stick_y / 10);
+    public void moveEffector(Gamepad gamepad2) {
+        double newTargetPosition = armRotatorLeft.getPosition() + (0.1 * gamepad2.left_stick_y);
         newTargetPosition = Math.max(0, Math.min(1, newTargetPosition));
         armRotatorLeft.setPosition(newTargetPosition);
         armRotatorRight.setPosition(newTargetPosition);
+
+        handRotator.setPosition(0.5 * (gamepad2.left_stick_x + 1));
+
+        leftActuator.setPosition(gamepad2.left_trigger);
+        rightActuator.setPosition(gamepad2.right_trigger);
     }
 }
