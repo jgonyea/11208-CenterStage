@@ -17,6 +17,7 @@ public class Effector {
     // Todo: Fix these fake values
     final double CLOSED_POSITION = 0;
     final double GRIP_POSITION = 0.1;
+    final double INPUT_SCALE_FACTOR = 0.1;
 
     public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handRotator, Servo leftActuator, Servo rightActuator) {
         this.armRotatorLeft = armRotatorLeft;
@@ -38,10 +39,12 @@ public class Effector {
     }
 
     public void moveEffector(Gamepad gamepad2) {
-        double newTargetPosition = armRotatorLeft.getPosition() + (0.1 * gamepad2.left_stick_y);
+        double newTargetPosition = armRotatorLeft.getPosition() + (INPUT_SCALE_FACTOR * gamepad2.left_stick_y);
         newTargetPosition = Math.max(0, Math.min(1, newTargetPosition));
         armRotatorLeft.setPosition(newTargetPosition);
         armRotatorRight.setPosition(newTargetPosition);
+
+        wristRotator.setPosition(wristRotator.getPosition() + (INPUT_SCALE_FACTOR * gamepad2.right_stick_y));
 
         handRotator.setPosition(0.5 * (gamepad2.left_stick_x + 1));
 
