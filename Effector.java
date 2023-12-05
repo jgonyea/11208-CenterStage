@@ -18,15 +18,17 @@ public class Effector {
     final double CLOSED_POSITION = 0;
     final double GRIP_POSITION = 0.1;
 
-    public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo handRotator, Servo leftActuator, Servo rightActuator) {
+    public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handRotator, Servo leftActuator, Servo rightActuator) {
         this.armRotatorLeft = armRotatorLeft;
         this.armRotatorRight = armRotatorRight;
+        this.wristRotator = wristRotator;
         this.handRotator = handRotator;
         this.leftActuator = leftActuator;
         this.rightActuator = rightActuator;
 
         armRotatorLeft.setDirection(Servo.Direction.FORWARD);
         armRotatorRight.setDirection(Servo.Direction.REVERSE);
+        wristRotator.setDirection(Servo.Direction.REVERSE);
         handRotator.setDirection(Servo.Direction.REVERSE);
         leftActuator.setDirection(Servo.Direction.FORWARD);
         rightActuator.setDirection(Servo.Direction.REVERSE);
