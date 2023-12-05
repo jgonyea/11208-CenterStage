@@ -23,9 +23,8 @@ public class DriveTrain {
     // Todo: fix this fake value.
     double MAX_DIST = 1000;
 
-    public void init(Telemetry telemetry, DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight){
-        // done: telemetry
-        this.telemetry = telemetry;
+    // Configure drivetrain motors.
+    public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight){
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.rearLeft = rearLeft;
@@ -47,6 +46,8 @@ public class DriveTrain {
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
+
+
     public void moveRobot(Gamepad gamepad1, DistanceSensor distL, DistanceSensor distR) {
 
         // Calculate values
@@ -94,18 +95,6 @@ public class DriveTrain {
 
         // Todo: Add encoder wheels' metrics.
 
-        // Todo: Can we add telemetry here? Would be better if we could.
-
-        telemetry.addLine("DriveTrain Telemetry works!");
-        telemetry.addData("input x", x);
-        telemetry.addData("input y", y);
-        telemetry.addData("input turn", turn);
-        telemetry.addData("computed angle", theta);
-        telemetry.addData("computed power", power);
-        telemetry.addData("Power to FL", powerFrontLeft);
-        telemetry.addData("Power to FR", powerFrontRight);
-        telemetry.addData("Power to RL", powerRearLeft);
-        telemetry.addData("Power to RR", powerRearRight);
     }
 
 }
