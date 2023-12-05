@@ -43,7 +43,15 @@ public class Effector {
 
         handRotator.setPosition(0.5 * (gamepad2.left_stick_x + 1));
 
-        leftActuator.setPosition(gamepad2.left_trigger);
-        rightActuator.setPosition(gamepad2.right_trigger);
+        if (gamepad2.left_bumper) {
+            leftActuator.setPosition(1);
+        } else {
+            leftActuator.setPosition(0);
+        }
+        if (gamepad2.right_bumper) {
+            rightActuator.setPosition(1);
+        } else {
+            rightActuator.setPosition(0);
+        }
     }
 }
