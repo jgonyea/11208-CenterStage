@@ -76,8 +76,9 @@ public class KardiaTeleOp extends OpMode {
     public void loop() {
         telemetry.addData("Stage", "Loop");
         drivetrain.moveRobot(gamepad1, distL, distR);
-        lift.moveLift(gamepad1);  // gamepad2 triggers are used by moveEffector
-        //effector.moveEffector(gamepad2);
+        lift.moveLift(gamepad2);
+        int liftPosition = liftMotorL.getCurrentPosition();
+        effector.moveEffector(gamepad2, liftPosition);
         //rearRight.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
 
 

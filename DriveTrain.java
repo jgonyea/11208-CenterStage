@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
@@ -18,7 +17,6 @@ public class DriveTrain {
     DcMotor frontLeft;
     DcMotor rearRight;
     DcMotor rearLeft;
-    Telemetry telemetry;
 
     // Todo: fix this fake value.
     double MAX_DIST = 1000;

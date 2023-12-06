@@ -16,8 +16,11 @@ public class Effector {
     Servo wristRotator;
 
     // Todo: Fix these fake values
-    final double CLOSED_POSITION = 0;
-    final double GRIP_POSITION = 0.1;
+    final double ACTUATOR_CLOSED_POSITION = 0;
+    final double ACTUATOR_GRIP_POSITION = 0.1;
+    final double ARM_FRONT_LIMIT = 0.1;
+    final int LIFT_DOWN_POSITION = 200;
+    final double ARM_FRONT_LIMIT_WHEN_LIFT_DOWN = 0.4;
     final double INPUT_SCALE_FACTOR = 0.1;
 
     public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handRotator, Servo leftActuator, Servo rightActuator) {
@@ -35,13 +38,16 @@ public class Effector {
         leftActuator.setDirection(Servo.Direction.FORWARD);
         rightActuator.setDirection(Servo.Direction.REVERSE);
 
-        leftActuator.scaleRange(CLOSED_POSITION, GRIP_POSITION);
-        rightActuator.scaleRange(CLOSED_POSITION, GRIP_POSITION);
+        leftActuator.scaleRange(ACTUATOR_CLOSED_POSITION, ACTUATOR_GRIP_POSITION);
+        rightActuator.scaleRange(ACTUATOR_CLOSED_POSITION, ACTUATOR_GRIP_POSITION);
     }
 
-    public void moveEffector(Gamepad gamepad2) {
+    public void moveEffector(Gamepad gamepad2, int liftPosition) {
         double newTargetPosition = armRotatorLeft.getPosition() + (INPUT_SCALE_FACTOR * gamepad2.left_stick_y);
-        newTargetPosition = Math.max(0, Math.min(1, newTargetPosition));
+        newTargetPosition = Math.max(ARM_FRONT_LIMIT, Math.min(1, newTargetPosition));
+        if (liftPosition <= LIFT_DOWN_POSITION) {
+            newTargetPosition = Math.max(ARM_FRONT_LIMIT_WHEN_LIFT_DOWN, newTargetPosition);
+        }
         armRotatorLeft.setPosition(newTargetPosition);
         armRotatorRight.setPosition(newTargetPosition);
 
