@@ -1,14 +1,14 @@
 /**
- *  Translates robot based on input from gamepad1 and distanceSensors.
+ *  Translates robot based on input from gamepad and distanceSensors.
  */
 package org.firstinspires.ftc.teamcode.teamcode11208;
 
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
@@ -18,7 +18,6 @@ public class DriveTrain {
     DcMotor frontLeft;
     DcMotor rearRight;
     DcMotor rearLeft;
-    Telemetry telemetry;
 
     // Todo: fix this fake value.
     double MAX_DIST = 1000;
@@ -30,11 +29,10 @@ public class DriveTrain {
         this.rearLeft = rearLeft;
         this.rearRight = rearRight;
 
-        // todo: I don't know which direction they are mounted in.
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
-        rearLeft.setDirection(DcMotor.Direction.REVERSE);
-        rearRight.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        rearLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -58,7 +56,8 @@ public class DriveTrain {
         double turn;
 
         // Override manual turning.
-        if (gamepad1.right_bumper) {
+        // Changed to A button because right bumper controls effectors.
+        if (gamepad1.a) {
             turn = Math.max(-1, Math.min(1, (distL.getDistance(DistanceUnit.CM) - distR.getDistance(DistanceUnit.CM)) / MAX_DIST));
         } else {
             turn = gamepad1.right_stick_x;
