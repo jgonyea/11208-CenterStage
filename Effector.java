@@ -13,6 +13,7 @@ public class Effector {
     Servo handRotator;
     Servo leftActuator;
     Servo rightActuator;
+    Servo wristRotator;
 
     // Todo: Fix these fake values
     final double CLOSED_POSITION = 0;

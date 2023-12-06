@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
@@ -17,13 +18,36 @@ public class DriveTrain {
     DcMotor frontLeft;
     DcMotor rearRight;
     DcMotor rearLeft;
+    Telemetry telemetry;
 
     // Todo: fix this fake value.
     double MAX_DIST = 1000;
 
-    public void init(){
-        // todo: Add drivetrain motor config init.
+    // Configure drivetrain motors.
+    public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight){
+        this.frontLeft = frontLeft;
+        this.frontRight = frontRight;
+        this.rearLeft = rearLeft;
+        this.rearRight = rearRight;
+
+        // todo: I don't know which direction they are mounted in.
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        rearLeft.setDirection(DcMotor.Direction.REVERSE);
+        rearRight.setDirection(DcMotor.Direction.FORWARD);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
+
+
     public void moveRobot(Gamepad gamepad1, DistanceSensor distL, DistanceSensor distR) {
 
         // Calculate values
@@ -35,7 +59,7 @@ public class DriveTrain {
 
         // Override manual turning.
         if (gamepad1.right_bumper) {
-            turn = (distL.getDistance(DistanceUnit.CM) - distR.getDistance(DistanceUnit.CM)) / MAX_DIST;
+            turn = Math.max(-1, Math.min(1, (distL.getDistance(DistanceUnit.CM) - distR.getDistance(DistanceUnit.CM)) / MAX_DIST));
         } else {
             turn = gamepad1.right_stick_x;
         }
@@ -71,8 +95,6 @@ public class DriveTrain {
 
         // Todo: Add encoder wheels' metrics.
 
-        // Todo: Can we add telemetry here? Would be better if we could.
-        //telemetry.addData("Label","Value");
     }
 
 }
