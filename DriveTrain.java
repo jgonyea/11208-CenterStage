@@ -1,5 +1,5 @@
 /**
- *  Translates robot based on input from gamepad1 and distanceSensors.
+ *  Translates robot based on input from gamepad and distanceSensors.
  */
 package org.firstinspires.ftc.teamcode.teamcode11208;
 
@@ -56,7 +56,8 @@ public class DriveTrain {
         double turn;
 
         // Override manual turning.
-        if (gamepad1.right_bumper) {
+        // Changed to A button because right bumper controls effectors.
+        if (gamepad1.a) {
             turn = Math.max(-1, Math.min(1, (distL.getDistance(DistanceUnit.CM) - distR.getDistance(DistanceUnit.CM)) / MAX_DIST));
         } else {
             turn = gamepad1.right_stick_x;

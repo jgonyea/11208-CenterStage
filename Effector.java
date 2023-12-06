@@ -1,5 +1,5 @@
 /**
- * Controls the end-effector based on input from gamepad2.
+ * Controls the end-effector based on input from a gamepad.
  */
 package org.firstinspires.ftc.teamcode.teamcode11208;
 
@@ -42,8 +42,8 @@ public class Effector {
         rightActuator.scaleRange(ACTUATOR_CLOSED_POSITION, ACTUATOR_GRIP_POSITION);
     }
 
-    public void moveEffector(Gamepad gamepad2, int liftPosition) {
-        double newTargetPosition = armRotatorLeft.getPosition() + (INPUT_SCALE_FACTOR * gamepad2.left_stick_y);
+    public void moveEffector(Gamepad gamepad, int liftPosition) {
+        double newTargetPosition = armRotatorLeft.getPosition() + (INPUT_SCALE_FACTOR * gamepad.left_stick_y);
         newTargetPosition = Math.max(ARM_FRONT_LIMIT, Math.min(1, newTargetPosition));
         if (liftPosition <= LIFT_DOWN_POSITION) {
             newTargetPosition = Math.max(ARM_FRONT_LIMIT_WHEN_LIFT_DOWN, newTargetPosition);
@@ -51,16 +51,16 @@ public class Effector {
         armRotatorLeft.setPosition(newTargetPosition);
         armRotatorRight.setPosition(newTargetPosition);
 
-        wristRotator.setPosition(wristRotator.getPosition() + (INPUT_SCALE_FACTOR * gamepad2.right_stick_y));
+        wristRotator.setPosition(wristRotator.getPosition() + (INPUT_SCALE_FACTOR * gamepad.right_stick_y));
 
-        handRotator.setPosition(0.5 * (gamepad2.left_stick_x + 1));
+        handRotator.setPosition(0.5 * (gamepad.left_stick_x + 1));
 
-        if (gamepad2.left_bumper) {
+        if (gamepad.left_bumper) {
             leftActuator.setPosition(1);
         } else {
             leftActuator.setPosition(0);
         }
-        if (gamepad2.right_bumper) {
+        if (gamepad.right_bumper) {
             rightActuator.setPosition(1);
         } else {
             rightActuator.setPosition(0);

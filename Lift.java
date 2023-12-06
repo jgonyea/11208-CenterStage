@@ -1,5 +1,5 @@
 /**
- * Controls the slide lifts via gamepad2.
+ * Controls the slide lift via gamepad input.
  */
 package org.firstinspires.ftc.teamcode.teamcode11208;
 
@@ -11,7 +11,8 @@ public class Lift {
 
     public DcMotor liftLeft;
     public DcMotor liftRight;
-    private double liftTarget;
+    // Number of turns to reach full lift extension.
+    private double liftTarget = 5.0;
 
     // Encoder ticks for one full revolution.
     public double ENCODER_TICKRATE = 384.5;
@@ -21,17 +22,13 @@ public class Lift {
         this.liftLeft = liftLeft;
         this.liftRight = liftRight;
 
-        // Number of turns to reach full lift extension.
-        liftTarget = 5.0;
-
-        // Note: Hardware mapping must be performed in OpMode/ LinearOpMode classes.
+        // Note: Hardware mapping must be performed in OpMode classes.
 
         this.liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.liftLeft.setTargetPosition(encodeTarget(liftTarget));
         this.liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
 
         this.liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
