@@ -16,17 +16,19 @@ public class KardiaTeleOp extends OpMode {
     DcMotor frontLeft;
     DcMotor rearRight;
     DcMotor rearLeft;
-    DcMotor liftMotorL;
-    DcMotor liftMotorR;
     DistanceSensor distL;
     DistanceSensor distR;
 
     Servo armRotatorLeft;
     Servo armRotatorRight;
-    Servo handRotator;
-    Servo leftActuator;
-    Servo rightActuator;
-    Servo wristActuator;
+    Servo handActuator;
+    Servo pincerLeft;
+    Servo pincerRight;
+    Servo wristRotator;
+
+    DcMotor liftMotorLeft;
+    DcMotor liftMotorRight;
+
 
     DriveTrain drivetrain = new DriveTrain();
     Effector effector = new Effector();
@@ -36,61 +38,47 @@ public class KardiaTeleOp extends OpMode {
     public void init() {
         telemetry.addData("Stage","Pre-Init");
         // Hardware mapping.
-        // Lift
-        liftMotorL = hardwareMap.get(DcMotor.class, "liftL");
-        liftMotorR = hardwareMap.get(DcMotor.class, "liftR");
 
-        // Effector
-        //armRotatorLeft = hardwareMap.get(Servo.class, "armL");
-        //armRotatorRight = hardwareMap.get(Servo.class, "armR");
-        //handRotator = hardwareMap.get(Servo.class, "hand");
-        //leftActuator = hardwareMap.get(Servo.class, "gripL");
-        //rightActuator = hardwareMap.get(Servo.class, "gripR");
-        //wristActuator = hardwareMap.get(Servo.class, "wrist");
-
-
-        // Drivetrain
+        // Drivetrain hardware mapping.
         frontLeft = hardwareMap.get(DcMotor.class, "driveFL");
         frontRight = hardwareMap.get(DcMotor.class, "driveFR");
         rearLeft = hardwareMap.get(DcMotor.class, "driveRL");
         rearRight = hardwareMap.get(DcMotor.class, "driveRR");
 
+        // Effector hardware mapping.
+        armRotatorLeft = hardwareMap.get(Servo.class, "armL");
+        armRotatorRight = hardwareMap.get(Servo.class, "armR");
+        handActuator = hardwareMap.get(Servo.class, "hand");
+        pincerLeft = hardwareMap.get(Servo.class, "pincerL");
+        pincerRight = hardwareMap.get(Servo.class, "pincerR");
+        wristRotator = hardwareMap.get(Servo.class, "wrist");
+
+        // Lift hardware mapping.
+        liftMotorLeft = hardwareMap.get(DcMotor.class, "liftL");
+        liftMotorRight = hardwareMap.get(DcMotor.class, "liftR");
+
         // Class initializations.
-        lift.init(liftMotorL, liftMotorR);
-        drivetrain.init(frontLeft, frontRight, rearLeft, rearRight);  // Todo: Do we need a full robot class to pass around the data fully?
-        //effector.init(armRotatorLeft, armRotatorRight, wristActuator, handRotator, leftActuator, rightActuator);
+        drivetrain.init(frontLeft, frontRight, rearLeft, rearRight);
+        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
+        lift.init(liftMotorLeft, liftMotorRight);
+
 
 
         // Debug.  Todo: Remove before competition.
         telemetry.addData("Initialization", "Complete");
-        telemetry.addData("LiftL Target", liftMotorL.getTargetPosition());
-        telemetry.addData("LiftL Mode: ", liftMotorL.getMode());
-        telemetry.addData("LiftL Current Pos: ", liftMotorL.getCurrentPosition());
-        telemetry.addData("LiftL Target: ", liftMotorL.getTargetPosition());
-        telemetry.addData("Motor NoPower Type", liftMotorL.getZeroPowerBehavior());
 
-        telemetry.addData("Stage","Post-Init");
     }
 
     @Override
     public void loop() {
-        telemetry.addData("Stage", "Loop");
         drivetrain.moveRobot(gamepad1, distL, distR);
         lift.moveLift(gamepad2);
-        int liftPosition = liftMotorL.getCurrentPosition();
-        effector.moveEffector(gamepad2, liftPosition);
-        //rearRight.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+        effector.moveEffector(gamepad2, liftMotorLeft.getCurrentPosition());
 
 
         // Debug.  Todo: Remove before competition.
-        telemetry.addData("1-LTrig", gamepad1.left_trigger);
-        telemetry.addData("1-RTrig", gamepad1.right_trigger);
-        telemetry.addData("Trigger Diff: ", gamepad1.right_trigger - gamepad1.left_trigger);
-        telemetry.addData("LiftL Power: ", liftMotorL.getPower());
-        telemetry.addData("LiftL Mode: ", liftMotorL.getMode());
-        telemetry.addData("LiftL Current Pos: ", liftMotorL.getCurrentPosition());
-        telemetry.addData("LiftL Target: ", liftMotorL.getTargetPosition());
-        telemetry.addData("Motor NoPower Type", liftMotorL.getZeroPowerBehavior());
-        telemetry.addData("RR Power", rearRight.getPower());
+        telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
+        telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
+
     }
 }

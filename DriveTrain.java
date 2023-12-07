@@ -1,5 +1,6 @@
 /**
  *  Translates robot based on input from gamepad and distanceSensors.
+ *  Original power calculation code from https://www.youtube.com/@gavinford8924
  */
 package org.firstinspires.ftc.teamcode.teamcode11208;
 
@@ -14,13 +15,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class DriveTrain {
 
-    DcMotor frontRight;
-    DcMotor frontLeft;
-    DcMotor rearRight;
-    DcMotor rearLeft;
+    private DcMotor frontLeft;
+    private DcMotor frontRight;
+    private DcMotor rearLeft;
+    private DcMotor rearRight;
 
-    // Todo: fix this fake value.
-    double MAX_DIST = 1000;
+
+    // Todo: fix these fake values.
+    // Optimal distance for robot to be from scoring board.
+    private double OPTIMAL_DIST = 10;
+
+    // Minimum difference in distance sensors to each other for auto-correction to engage.
+    private double MINIMUM_DIST = 2;
+
+    // Scales approach speed.
+    private double APPROACH_POWER_SCALE = 0.25;
 
     // Configure drivetrain motors.
     public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight){
@@ -45,23 +54,43 @@ public class DriveTrain {
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    // Move robot based on input from gamepad and distance sensors.
+    public void moveRobot(Gamepad gamepad, DistanceSensor distL, DistanceSensor distR) {
 
-    public void moveRobot(Gamepad gamepad1, DistanceSensor distL, DistanceSensor distR) {
-
-        // Calculate values
-        double x = gamepad1.left_stick_x;
-        double y = gamepad1.left_stick_y;
-        double theta = Math.atan2(y, x);
-        double power = Math.hypot(x,y);
+        double distanceLeft = distL.getDistance(DistanceUnit.MM);
+        double distanceRight = distR.getDistance(DistanceUnit.MM);
+        double theta;
+        double power;
         double turn;
 
-        // Override manual turning.
-        // Changed to A button because right bumper controls effectors.
-        if (gamepad1.a) {
-            turn = Math.max(-1, Math.min(1, (distL.getDistance(DistanceUnit.CM) - distR.getDistance(DistanceUnit.CM)) / MAX_DIST));
-        } else {
-            turn = gamepad1.right_stick_x;
+        // Calculate values based on math code from https://www.youtube.com/@gavinford8924
+        double x = gamepad.left_stick_x;
+        double y = gamepad.left_stick_y;
+
+        // Automate approaching the scoring board.
+        if (gamepad.right_bumper) {
+            // Locks turning.
+            x = 0.0;
+
+            // Approach board until OPTIMAL_DIST.
+            if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
+                y = 0.0;
+            } else {
+                y = APPROACH_POWER_SCALE * y;
+            }
         }
+
+        theta = Math.atan2(y, x);
+        power = Math.hypot(x,y);
+
+
+        // Automate turning for squaring up to scoring board.
+        if (gamepad.left_bumper) {
+            turn = calculateTurn(distanceLeft, distanceRight);
+        } else {
+            turn = gamepad.right_stick_x;
+        }
+
 
         // Calculate initial power results to motors.
         double sin = Math.sin(theta - Math.PI/4);
@@ -94,6 +123,25 @@ public class DriveTrain {
 
         // Todo: Add encoder wheels' metrics.
 
+    }
+
+    // Scales turning values to square robot based on distance sensor input.
+    private double calculateTurn(double distanceLeft, double distanceRight){
+        // A negative turn value is rotating the robot counter-clockwise.
+        // A positive turn value is rotating the robot clockwise.
+        double turn = distanceLeft - distanceRight;
+
+        // Don't turn if distance values are both 0.
+        if (distanceLeft == 0 && distanceRight == 0) {
+            return 0.0;
+        }
+
+        // Scale turn.
+        turn = turn / Math.max(distanceLeft, distanceRight);
+
+        // todo: Check if we need to account for oscillations?
+        // todo: Check if we need to set a minimum turn value.
+        return turn;
     }
 
 }
