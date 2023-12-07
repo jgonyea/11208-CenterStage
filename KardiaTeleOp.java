@@ -63,34 +63,19 @@ public class KardiaTeleOp extends OpMode {
 
         // Debug.  Todo: Remove before competition.
         telemetry.addData("Initialization", "Complete");
-        telemetry.addData("LiftL Target", liftMotorL.getTargetPosition());
-        telemetry.addData("LiftL Mode: ", liftMotorL.getMode());
-        telemetry.addData("LiftL Current Pos: ", liftMotorL.getCurrentPosition());
-        telemetry.addData("LiftL Target: ", liftMotorL.getTargetPosition());
-        telemetry.addData("Motor NoPower Type", liftMotorL.getZeroPowerBehavior());
 
-        telemetry.addData("Stage","Post-Init");
     }
 
     @Override
     public void loop() {
-        telemetry.addData("Stage", "Loop");
         drivetrain.moveRobot(gamepad1, distL, distR);
         lift.moveLift(gamepad2);
-        int liftPosition = liftMotorL.getCurrentPosition();
-        effector.moveEffector(gamepad2, liftPosition);
-        //rearRight.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+        effector.moveEffector(gamepad2, liftMotorL.getCurrentPosition());
 
 
         // Debug.  Todo: Remove before competition.
-        telemetry.addData("1-LTrig", gamepad1.left_trigger);
-        telemetry.addData("1-RTrig", gamepad1.right_trigger);
-        telemetry.addData("Trigger Diff: ", gamepad1.right_trigger - gamepad1.left_trigger);
-        telemetry.addData("LiftL Power: ", liftMotorL.getPower());
-        telemetry.addData("LiftL Mode: ", liftMotorL.getMode());
         telemetry.addData("LiftL Current Pos: ", liftMotorL.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorL.getTargetPosition());
-        telemetry.addData("Motor NoPower Type", liftMotorL.getZeroPowerBehavior());
-        telemetry.addData("RR Power", rearRight.getPower());
+
     }
 }
