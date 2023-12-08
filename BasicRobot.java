@@ -127,5 +127,15 @@ public class BasicRobot extends OpMode {
         if (!gamepad1.right_bumper && gamepad1.right_trigger == 0) {
             throttlePressed = false;
         }
+
+        // Telemetry
+        if (invert) {
+            telemetry.addLine("Inverted");
+        } else {
+            telemetry.addLine("Normal");
+        }
+        if (throttle < 1) {
+            telemetry.addLine("Throttled to " + Math.round(throttle * 100) + "%");
+        }
     }
 }
