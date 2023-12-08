@@ -18,6 +18,7 @@ public class BasicRobot extends OpMode {
     boolean zeroed;
     boolean spinDir;
     double throttle;
+    boolean throttlePressed;
     boolean invert;
     boolean invertPressed;
 
@@ -51,6 +52,7 @@ public class BasicRobot extends OpMode {
         invert = false;
         invertPressed = false;
         throttle = 1;
+        throttlePressed = false;
     }
 
     @Override
@@ -119,8 +121,11 @@ public class BasicRobot extends OpMode {
         }
 
         // Throttle based on right trigger/button.
-        if (gamepad1.right_bumper) {
+        if (gamepad1.right_bumper && !throttlePressed) {
             throttle = (1 - gamepad1.right_trigger);
+        }
+        if (!gamepad1.right_bumper && gamepad1.right_trigger == 0) {
+            throttlePressed = false;
         }
     }
 }
