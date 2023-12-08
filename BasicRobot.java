@@ -25,10 +25,10 @@ public class BasicRobot extends OpMode {
         spin = hardwareMap.get(DcMotor.class, "Spinner");
 
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         rearLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        spin.setDirection(DcMotorSimple.Direction.FORWARD);
+        rearRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        spin.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
