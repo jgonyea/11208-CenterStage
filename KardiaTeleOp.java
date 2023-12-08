@@ -62,23 +62,18 @@ public class KardiaTeleOp extends OpMode {
         effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
         lift.init(liftMotorLeft, liftMotorRight);
 
-
-
         // Debug.  Todo: Remove before competition.
         telemetry.addData("Initialization", "Complete");
-
     }
 
     @Override
     public void loop() {
         drivetrain.moveRobot(gamepad1, distL, distR);
         lift.moveLift(gamepad2);
-        effector.moveEffector(gamepad2, liftMotorLeft.getCurrentPosition());
-
+        effector.moveEffector(gamepad2);
 
         // Debug.  Todo: Remove before competition.
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
-
     }
 }
