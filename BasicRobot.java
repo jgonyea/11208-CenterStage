@@ -8,13 +8,18 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@TeleOp(name="Basic Drivetrain with Spinner")
+@TeleOp(name="Drivetrain and spinner")
 public class BasicRobot extends OpMode {
     DcMotor frontLeft;
     DcMotor frontRight;
     DcMotor rearLeft;
     DcMotor rearRight;
     DcMotor spin;
+    boolean zeroed;
+    boolean spinDir;
+    double throttle;
+    boolean invert;
+    boolean invertPressed;
 
     @Override
     public void init() {
@@ -28,7 +33,6 @@ public class BasicRobot extends OpMode {
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        spin.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -41,13 +45,32 @@ public class BasicRobot extends OpMode {
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         spin.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        zeroed = true;
+        spinDir = true;
+        invert = false;
+        invertPressed = false;
+        throttle = 1;
     }
 
     @Override
     public void loop() {
+        // Invert button
+        if (gamepad1.dpad_down && gamepad1.dpad_left && gamepad1.dpad_up && gamepad1.dpad_right && !invertPressed) {
+            invertPressed = true;
+            invert = !invert;
+        }
+        if (!(gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_right)) {
+            invertPressed = false;
+        }
+
         // Calculate values
-        double x = gamepad1.left_stick_x;
-        double y = gamepad1.left_stick_y;
+        double x = -gamepad1.left_stick_x;
+        double y = Math.max(-1, Math.min(1, gamepad1.left_stick_y + gamepad1.right_stick_y));
+        if (invert) {
+            x = -x;
+            y = -y;
+        }
         double theta = Math.atan2(y, x);
         double power = Math.hypot(x,y);
         double turn = gamepad1.right_stick_x;
@@ -61,10 +84,10 @@ public class BasicRobot extends OpMode {
         );
 
         // Set power levels for each wheel.
-        double powerFrontLeft = power * (cos / max) + turn;
-        double powerFrontRight = power * (sin / max) - turn;
-        double powerRearLeft = power * (sin / max) + turn;
-        double powerRearRight = power * (cos / max) - turn;
+        double powerFrontLeft = power * (cos / max) - turn;
+        double powerFrontRight = power * (sin / max) + turn;
+        double powerRearLeft = power * (sin / max) - turn;
+        double powerRearRight = power * (cos / max) + turn;
 
         // Rescale power if beyond maximum.
         double scale = power + Math.abs(turn);
@@ -76,11 +99,28 @@ public class BasicRobot extends OpMode {
         }
 
         // Assign power to wheels.
-        frontRight.setPower(powerFrontRight);
-        frontLeft.setPower(powerFrontLeft);
-        rearRight.setPower(powerRearRight);
-        rearLeft.setPower(powerRearLeft);
+        frontRight.setPower(powerFrontRight * throttle);
+        frontLeft.setPower(powerFrontLeft * throttle);
+        rearRight.setPower(powerRearRight * throttle);
+        rearLeft.setPower(powerRearLeft * throttle);
 
-        spin.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+        // Spin based on left trigger.
+        if (gamepad1.left_trigger == 0 && !zeroed) {
+            zeroed = true;
+            spinDir = !spinDir;
+        }
+        if (gamepad1.left_trigger > 0) {
+            zeroed = false;
+        }
+        if (spinDir) {
+            spin.setPower(+gamepad1.left_trigger);
+        } else {
+            spin.setPower(-gamepad1.left_trigger);
+        }
+
+        // Throttle based on right trigger/button.
+        if (gamepad1.right_bumper) {
+            throttle = (1 - gamepad1.right_trigger);
+        }
     }
 }
