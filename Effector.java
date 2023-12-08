@@ -32,7 +32,7 @@ public class Effector {
     private final static long NORMAL_TO_INTAKE_TIME = 500_000_000;
     private final static double ARM_INTAKE_POSITION = 0.1;
     private final static double WRIST_INTAKE_POSITION = -0.1;
-    private final static double INTAKE_TO_NORMAL_TIME = 500_000_000;
+    private final static long INTAKE_TO_NORMAL_TIME = 500_000_000;
     private final static long NORMAL_TO_TURNING_TIME = 1_000_000_000;
     private final static double ARM_POSITION_TO_BEGIN_TURNING = 0.5;
     private final static long TURNING_TO_PLACING_TIME = 1_000_000_000;
