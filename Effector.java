@@ -46,9 +46,6 @@ public class Effector {
 
     private EffectorState currentState;
     private long lastStateChangeTime;
-    private boolean aPressed;
-    private boolean xPressed;
-    private boolean bPressed;
 
     public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handActuator, Servo pincerLeft, Servo pincerRight) {
         this.armRotatorLeft = armRotatorLeft;
@@ -68,51 +65,19 @@ public class Effector {
         // Todo: move servos to normal positions
 
         currentState = EffectorState.NORMAL_POSE;
-        aPressed = false;
-        xPressed = false;
-        bPressed = false;
     }
 
     public void moveEffector(Gamepad gamepad) {
-        // Detect button presses only once
-        boolean a = false;
-        if (gamepad.a && !aPressed) {
-            aPressed = true;
-            a = true;
-        }
-        if (!gamepad.a) {
-            aPressed = false;
-        }
-
-        boolean x = false;
-        if (gamepad.x && !xPressed) {
-            xPressed = true;
-            x = true;
-        }
-        if (!gamepad.x) {
-            xPressed = false;
-        }
-
-        boolean b = false;
-        if (gamepad.b && !bPressed) {
-            bPressed = true;
-            b = true;
-        }
-        if (!gamepad.b) {
-            bPressed = false;
-        }
-
-        // Move servos
         switch (currentState) {
             case NORMAL_POSE:
-                if (b) {
+                if (gamepad.b) {
                     armRotatorLeft.setPosition(ARM_INTAKE_POSITION);
                     armRotatorRight.setPosition(ARM_INTAKE_POSITION);
                     wristRotator.setPosition(WRIST_INTAKE_POSITION);
                     currentState = EffectorState.MOVING_TO_INTAKE;
                     lastStateChangeTime = System.nanoTime();
                 }
-                if (x) {
+                if (gamepad.x) {
                     armRotatorLeft.setPosition(ARM_POSITION_TO_BEGIN_TURNING);
                     armRotatorRight.setPosition(ARM_POSITION_TO_BEGIN_TURNING);
                     currentState = EffectorState.MOVING_BACKWARD_TURN_RESTRICTED;
@@ -132,7 +97,7 @@ public class Effector {
                 if (gamepad.right_bumper) {
                     pincerRight.setPosition(PINCER_GRIPPING_POSITION);
                 }
-                if (a) {
+                if (gamepad.a) {
                     armRotatorLeft.setPosition(ARM_NORMAL_POSITION);
                     armRotatorRight.setPosition(ARM_NORMAL_POSITION);
                     wristRotator.setPosition(WRIST_NORMAL_POSITION);
@@ -168,7 +133,7 @@ public class Effector {
                 if (gamepad.right_bumper) {
                     pincerRight.setPosition(PINCER_CLOSED_POSITION);
                 }
-                if (a) {
+                if (gamepad.a) {
                     armRotatorLeft.setPosition(ARM_POSITION_TO_BEGIN_TURNING);
                     armRotatorRight.setPosition(ARM_POSITION_TO_BEGIN_TURNING);
                     handActuator.setPosition(HAND_NORMAL_POSITION);
