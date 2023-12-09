@@ -26,11 +26,14 @@ public class KardiaTeleOp extends OpMode {
     Servo pincerRight;
     Servo wristRotator;
 
+    Servo launcher;
+
     DcMotor liftMotorLeft;
     DcMotor liftMotorRight;
 
 
     DriveTrain drivetrain = new DriveTrain();
+    Drone drone = new Drone();
     Effector effector = new Effector();
     Lift lift = new Lift();
 
@@ -57,8 +60,12 @@ public class KardiaTeleOp extends OpMode {
         liftMotorLeft = hardwareMap.get(DcMotor.class, "liftL");
         liftMotorRight = hardwareMap.get(DcMotor.class, "liftR");
 
+        // Launcher hardware mapping.
+        launcher = hardwareMap.get(Servo.class, "launcher");
+
         // Class initializations.
         drivetrain.init(frontLeft, frontRight, rearLeft, rearRight);
+        drone.init(launcher);
         effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
         lift.init(liftMotorLeft, liftMotorRight);
 
@@ -69,11 +76,13 @@ public class KardiaTeleOp extends OpMode {
     @Override
     public void loop() {
         drivetrain.moveRobot(gamepad1, distL, distR);
+        drone.launch(gamepad1, gamepad2);
         lift.moveLift(gamepad2);
         effector.moveEffector(gamepad2);
 
         // Debug.  Todo: Remove before competition.
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
+        telemetry.addData("Current Effector State: ", effector.getCurrentState());
     }
 }

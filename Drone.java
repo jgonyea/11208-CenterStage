@@ -25,7 +25,7 @@ public class Drone {
     // Launches the drone.
     public void launch(Gamepad gamepad1, Gamepad gamepad2){
         // Requires both player to press button "Y" and the same time.
-        if (gamepad1.y && gamepad2.y && !launching) {
+        if (gamepad1.x && gamepad2.x && !launching) {
             launching = true;
             this.timer.reset();
         } else {
