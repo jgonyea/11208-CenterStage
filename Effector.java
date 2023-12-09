@@ -29,12 +29,12 @@ public class Effector {
     private final static double ARM_STAGED_INTAKE_POSITION = 0.2;
     private final static double ARM_STAGED_LIFT_POSITION = 0.5;
 
-    private final static double HAND_DRIVING_POSITION = 0.5;
-    private final static double HAND_INTAKE_POSITION = 0;
-    private final static double HAND_SCORING_POSITION = 1;
+    private final static double HAND_DRIVING_POSITION = 0.2;
+    private final static double HAND_INTAKE_POSITION = .8;
+    private final static double HAND_SCORING_POSITION = 0;
 
     private final static double PINCER_CLOSED_POSITION = 0;
-    private final static double PINCER_GRIPPING_POSITION = 0.1;
+    private final static double PINCER_GRIPPING_POSITION = 0.4;
 
     private final static double WRIST_INTAKE_POSITION = 0;
     private final static double WRIST_SCORING_POSITION = 1;
@@ -64,6 +64,10 @@ public class Effector {
         pincerLeft.setDirection(Servo.Direction.FORWARD);
         pincerRight.setDirection(Servo.Direction.REVERSE);
 
+        pincerLeft.setPosition(PINCER_GRIPPING_POSITION);
+        pincerRight.setPosition(PINCER_GRIPPING_POSITION);
+        wristRotator.setPosition(WRIST_INTAKE_POSITION);
+
         currentState = EffectorState.DRIVING;
     }
 
@@ -76,7 +80,7 @@ public class Effector {
                 wristRotator.setPosition(WRIST_INTAKE_POSITION);
 
                 // Monitor for arm rotation buttons A & Y.
-                if (gp.a && !gp.y){
+                if (gp.a && !gp.y && !is_a_pressed){
                     currentState = EffectorState.STAGED_INTAKE;
                     timer.reset();
                     this.is_a_pressed = true;
@@ -87,7 +91,9 @@ public class Effector {
                     this.is_a_pressed = false;
                     this.is_y_pressed = true;
                 }
-
+                if (!gp.a) {
+                    this.is_a_pressed = false;
+                }
                 break;
 
             case STAGED_INTAKE:
@@ -173,5 +179,9 @@ public class Effector {
         } else {
             pincerRight.setPosition(PINCER_GRIPPING_POSITION);
         }
+    }
+
+    public String getCurrentState(){
+        return currentState.name();
     }
 }
