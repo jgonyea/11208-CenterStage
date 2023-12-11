@@ -1,7 +1,7 @@
 /**
  * Controls the slide lift via gamepad input.
  */
-package org.firstinspires.ftc.teamcode.teamcode11208;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;

@@ -2,7 +2,7 @@
  *  Translates robot based on input from gamepad and distanceSensors.
  *  Original power calculation code from https://www.youtube.com/@gavinford8924
  */
-package org.firstinspires.ftc.teamcode.teamcode11208;
+package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.robotcore.hardware.DcMotor;
