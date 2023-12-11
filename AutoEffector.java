@@ -180,4 +180,8 @@ public class AutoEffector {
     public String getCurrentState(){
         return currentState.name();
     }
+
+    public void waitForState(String state) {
+        while (!getCurrentState().equals(state)) {}
+    }
 }
