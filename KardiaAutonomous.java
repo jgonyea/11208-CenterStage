@@ -28,7 +28,7 @@ public class KardiaAutonomous extends LinearOpMode {
         lastPose = new Pose2d(0, 0, 0);
         mecanumDrive.setPoseEstimate(lastPose);
         someTrajectory = mecanumDrive.trajectoryBuilder(lastPose)
-                .splineTo(new Vector2d(0, 10), Math.toRadians(45))
+                .splineTo(new Vector2d(0, 10), 0)
                 .splineTo(new Vector2d(40, 10),0)
                 .build();
 
