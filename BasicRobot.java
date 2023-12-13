@@ -17,10 +17,8 @@ public class BasicRobot extends OpMode {
     DcMotor spin;
     boolean zeroed;
     boolean spinDir;
-    double throttle;
-    boolean throttlePressed;
-    boolean invert;
-    boolean invertPressed;
+    private static final double THROTTLE = 0.6;
+    private static final double CORRECTION = 0.1;
 
     @Override
     public void init() {
@@ -34,6 +32,7 @@ public class BasicRobot extends OpMode {
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        spin.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -47,35 +46,18 @@ public class BasicRobot extends OpMode {
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         spin.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        zeroed = true;
+        zeroed = false;
         spinDir = true;
-        invert = false;
-        invertPressed = false;
-        throttle = 1;
-        throttlePressed = false;
     }
 
     @Override
     public void loop() {
-        // Invert button
-        if (gamepad1.dpad_down && gamepad1.dpad_left && gamepad1.dpad_up && gamepad1.dpad_right && !invertPressed) {
-            invertPressed = true;
-            invert = !invert;
-        }
-        if (!(gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_up || gamepad1.dpad_right)) {
-            invertPressed = false;
-        }
-
         // Calculate values
         double x = -gamepad1.left_stick_x;
         double y = Math.max(-1, Math.min(1, gamepad1.left_stick_y + gamepad1.right_stick_y));
-        if (invert) {
-            x = -x;
-            y = -y;
-        }
         double theta = Math.atan2(y, x);
-        double power = Math.hypot(x,y);
-        double turn = gamepad1.right_stick_x;
+        double power = Math.hypot(x, y);
+        double turn = gamepad1.right_stick_x + CORRECTION * x;
 
         // Calculate initial power results to motors.
         double sin = Math.sin(theta - Math.PI/4);
@@ -101,10 +83,10 @@ public class BasicRobot extends OpMode {
         }
 
         // Assign power to wheels.
-        frontRight.setPower(powerFrontRight * throttle);
-        frontLeft.setPower(powerFrontLeft * throttle);
-        rearRight.setPower(powerRearRight * throttle);
-        rearLeft.setPower(powerRearLeft * throttle);
+        frontRight.setPower(powerFrontRight * THROTTLE);
+        frontLeft.setPower(powerFrontLeft * THROTTLE);
+        rearRight.setPower(powerRearRight * THROTTLE);
+        rearLeft.setPower(powerRearLeft * THROTTLE);
 
         // Spin based on left trigger.
         if (gamepad1.left_trigger == 0 && !zeroed) {
@@ -118,25 +100,6 @@ public class BasicRobot extends OpMode {
             spin.setPower(+gamepad1.left_trigger);
         } else {
             spin.setPower(-gamepad1.left_trigger);
-        }
-
-        // Throttle based on right trigger/button.
-        if (gamepad1.right_bumper && !throttlePressed) {
-            throttlePressed = true;
-            throttle = (1 - gamepad1.right_trigger);
-        }
-        if (!gamepad1.right_bumper) {
-            throttlePressed = false;
-        }
-
-        // Telemetry
-        if (invert) {
-            telemetry.addLine("Inverted");
-        } else {
-            telemetry.addLine("Normal");
-        }
-        if (throttle < 1) {
-            telemetry.addLine("Throttled to " + Math.round(throttle * 100) + "%");
         }
     }
 }
