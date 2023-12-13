@@ -17,8 +17,9 @@ public class BasicRobot extends OpMode {
     DcMotor spin;
     boolean zeroed;
     boolean spinDir;
-    private static final double THROTTLE = 0.6;
-    private static final double CORRECTION = 0.1;
+    private static final double THROTTLE = 0.75;
+    private static final double LEFT_CORRECTION = 0.0111;
+    private static final double RIGHT_CORRECTION = 0.001;
 
     @Override
     public void init() {
@@ -54,10 +55,16 @@ public class BasicRobot extends OpMode {
     public void loop() {
         // Calculate values
         double x = -gamepad1.left_stick_x;
-        double y = Math.max(-1, Math.min(1, gamepad1.left_stick_y + gamepad1.right_stick_y));
+        double y = +gamepad1.left_stick_y;
         double theta = Math.atan2(y, x);
         double power = Math.hypot(x, y);
-        double turn = gamepad1.right_stick_x + CORRECTION * x;
+        double turn = gamepad1.right_stick_x;
+        if (x > 0) {
+            turn -= LEFT_CORRECTION * x;
+        }
+        if (x < 0){
+            turn += RIGHT_CORRECTION * x;
+        }
 
         // Calculate initial power results to motors.
         double sin = Math.sin(theta - Math.PI/4);
