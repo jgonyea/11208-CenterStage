@@ -20,31 +20,34 @@ public class Effector {
         INTAKE,
         STAGED_LIFT,
         SCORING,
+        MANUAL
     }
 
-    // Todo: Fix these fake values
-    private final static double ARM_DRIVING_POSITION = 0;
-    private final static double ARM_INTAKE_POSITION = 0.1;
-    private final static double ARM_SCORING_POSITION = 1;
-    private final static double ARM_STAGED_INTAKE_POSITION = 0.2;
-    private final static double ARM_STAGED_LIFT_POSITION = 0.5;
+    // Values based on empirical testing.
+    private final static double ARM_DRIVING_POSITION = 0.400;
+    private final static double ARM_INTAKE_POSITION = 0.379;
+    private final static double ARM_SCORING_POSITION = 0.890;
+    private final static double ARM_STAGED_INTAKE_POSITION = 0.390;
+    private final static double ARM_STAGED_LIFT_POSITION = 0.450;
 
-    private final static double HAND_DRIVING_POSITION = 0.2;
-    private final static double HAND_INTAKE_POSITION = .8;
-    private final static double HAND_SCORING_POSITION = 0;
+    private final static double HAND_DRIVING_POSITION = 0.7;
+    private final static double HAND_INTAKE_POSITION = 0.40;
+    private final static double HAND_SCORING_POSITION = 0.278;
 
-    private final static double PINCER_CLOSED_POSITION = 0;
-    private final static double PINCER_GRIPPING_POSITION = 0.4;
+    private final static double PINCERL_CLOSED_POSITION = 0.45;
+    private final static double PINCERR_CLOSED_POSITION = 0.49;
+    private final static double PINCER_GRIP_OFFSET = 0.06;
 
-    private final static double WRIST_INTAKE_POSITION = 0;
-    private final static double WRIST_SCORING_POSITION = 1;
+    private final static double WRIST_INTAKE_POSITION = 1;
+    private final static double WRIST_SCORING_POSITION = 0.16;
 
     // Timings
     private ElapsedTime timer = new ElapsedTime();
-    private final static double STAGED_INTAKE_TIME = 3.0;
+    private final static double STAGED_INTAKE_TIME = 1.0;
 
     private EffectorState currentState;
     private boolean is_a_pressed = false;
+    private boolean is_b_pressed = false;
     private boolean is_y_pressed = false;
 
 
@@ -59,20 +62,27 @@ public class Effector {
 
         armRotatorLeft.setDirection(Servo.Direction.FORWARD);
         armRotatorRight.setDirection(Servo.Direction.REVERSE);
-        wristRotator.setDirection(Servo.Direction.REVERSE);
-        handActuator.setDirection(Servo.Direction.REVERSE);
         pincerLeft.setDirection(Servo.Direction.FORWARD);
-        pincerRight.setDirection(Servo.Direction.REVERSE);
+        pincerRight.setDirection(Servo.Direction.FORWARD);
 
-        pincerLeft.setPosition(PINCER_GRIPPING_POSITION);
-        pincerRight.setPosition(PINCER_GRIPPING_POSITION);
+        // Move pincers to grip/ open positions.
+        pincerLeft.setPosition(PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET);
+        pincerRight.setPosition(PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET);
+
+        armRotatorLeft.setPosition(ARM_STAGED_LIFT_POSITION);
+        armRotatorRight.setPosition(ARM_STAGED_LIFT_POSITION);
+        handActuator.setPosition(HAND_DRIVING_POSITION);
         wristRotator.setPosition(WRIST_INTAKE_POSITION);
 
-        currentState = EffectorState.DRIVING;
+        currentState = EffectorState.STAGED_LIFT;
     }
 
     public void moveEffector(Gamepad gp) {
         switch (currentState) {
+            case MANUAL:
+                // Manual manipulation of effector here.
+                break;
+
             case DRIVING:
                 armRotatorLeft.setPosition(ARM_DRIVING_POSITION);
                 armRotatorRight.setPosition(ARM_DRIVING_POSITION);
@@ -90,6 +100,7 @@ public class Effector {
                     currentState = EffectorState.STAGED_LIFT;
                     this.is_a_pressed = false;
                     this.is_y_pressed = true;
+                    timer.reset();
                 }
                 if (!gp.a) {
                     this.is_a_pressed = false;
@@ -100,6 +111,12 @@ public class Effector {
                 armRotatorLeft.setPosition(ARM_STAGED_INTAKE_POSITION);
                 armRotatorRight.setPosition(ARM_STAGED_INTAKE_POSITION);
                 handActuator.setPosition(HAND_INTAKE_POSITION);
+                wristRotator.setPosition(WRIST_INTAKE_POSITION);
+
+                if (is_a_pressed) {
+                    pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
+                    pincerRight.setPosition(PINCERR_CLOSED_POSITION);
+                }
 
                 if (timer.seconds() > STAGED_INTAKE_TIME) {
                     if (is_a_pressed){
@@ -115,6 +132,7 @@ public class Effector {
                 if (!gp.a) {
                     this.is_a_pressed = false;
                     currentState = EffectorState.STAGED_INTAKE;
+                    timer.reset();
                     break;
                 }
                 armRotatorLeft.setPosition(ARM_INTAKE_POSITION);
@@ -127,8 +145,12 @@ public class Effector {
                 break;
 
             case STAGED_LIFT:
+                armRotatorLeft.setPosition(ARM_STAGED_LIFT_POSITION);
                 armRotatorRight.setPosition(ARM_STAGED_LIFT_POSITION);
-                wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                handActuator.setPosition(HAND_DRIVING_POSITION);
+                if (timer.seconds() > STAGED_INTAKE_TIME){
+                    wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                }
 
                 // Wait for 2nd press to go down.
                 if (gp.a && !this.is_a_pressed) {
@@ -159,8 +181,12 @@ public class Effector {
 
                 if (gp.a) {
                     currentState = EffectorState.STAGED_LIFT;
+                    pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
+                    pincerRight.setPosition(PINCERR_CLOSED_POSITION);
                     is_a_pressed = true;
+                    timer.reset();
                 }
+
                 break;
 
             default:
@@ -170,14 +196,14 @@ public class Effector {
 
     private void movePincers(Gamepad gp, Servo pincerLeft, Servo pincerRight) {
         if (gp.left_bumper) {
-            pincerLeft.setPosition(PINCER_CLOSED_POSITION);
+            pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
         } else {
-            pincerLeft.setPosition(PINCER_GRIPPING_POSITION);
+            pincerLeft.setPosition(PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET);
         }
         if (gp.right_bumper) {
-            pincerRight.setPosition(PINCER_CLOSED_POSITION);
+            pincerRight.setPosition(PINCERR_CLOSED_POSITION);
         } else {
-            pincerRight.setPosition(PINCER_GRIPPING_POSITION);
+            pincerRight.setPosition(PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET);
         }
     }
 

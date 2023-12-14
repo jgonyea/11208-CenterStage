@@ -42,6 +42,10 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("Stage","Pre-Init");
         // Hardware mapping.
 
+        // Distance Sensors
+        //distL = hardwareMap.get(DistanceSensor.class, "distL");
+        //distR = hardwareMap.get(DistanceSensor.class, "distR");
+
         // Drivetrain hardware mapping.
         frontLeft = hardwareMap.get(DcMotor.class, "driveFL");
         frontRight = hardwareMap.get(DcMotor.class, "driveFR");
@@ -65,17 +69,22 @@ public class KardiaTeleOp extends OpMode {
 
         // Class initializations.
         drivetrain.init(frontLeft, frontRight, rearLeft, rearRight);
+        telemetry.addData("Drivetrain: ", "Initialized");
         drone.init(launcher);
+        telemetry.addData("Drone Launcher: ", "Initialized");
         effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
+        telemetry.addData("End Effector: ", "Initialized");
         lift.init(liftMotorLeft, liftMotorRight);
+        telemetry.addData("Lift: ", "Initialized");
+        
 
-        // Debug.  Todo: Remove before competition.
-        telemetry.addData("Initialization", "Complete");
+        telemetry.addData("Robot Initialization", "Complete");
+        telemetry.addData("Current Effector State: ", effector.getCurrentState());
     }
 
     @Override
     public void loop() {
-        drivetrain.moveRobot(gamepad1, distL, distR);
+        drivetrain.moveRobot(gamepad1);
         drone.launch(gamepad1, gamepad2);
         lift.moveLift(gamepad2);
         effector.moveEffector(gamepad2);

@@ -12,10 +12,10 @@ public class Lift {
     public DcMotor liftLeft;
     public DcMotor liftRight;
     // Number of turns to reach full lift extension.
-    private double liftTarget = 5.0;
+    private double liftTarget = 5.4;
 
     // Encoder ticks for one full revolution.
-    public double ENCODER_TICKRATE = 384.5;
+    public double ENCODER_TICKRATE = 751.8;
 
 
     public void init(DcMotor liftLeft, DcMotor liftRight){
@@ -26,13 +26,13 @@ public class Lift {
 
         this.liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.liftLeft.setTargetPosition(encodeTarget(liftTarget));
+        this.liftLeft.setTargetPosition(0);
         this.liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         this.liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.liftRight.setTargetPosition(encodeTarget(liftTarget));
+        this.liftRight.setTargetPosition(0);
         this.liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.liftRight.setDirection(DcMotor.Direction.REVERSE);
         this.liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

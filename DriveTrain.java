@@ -20,6 +20,9 @@ public class DriveTrain {
     private DcMotor rearLeft;
     private DcMotor rearRight;
 
+    private DistanceSensor distanceL;
+    private DistanceSensor distanceR;
+
 
     // Todo: fix these fake values.
     // Optimal distance for robot to be from scoring board.
@@ -38,6 +41,9 @@ public class DriveTrain {
         this.rearLeft = rearLeft;
         this.rearRight = rearRight;
 
+        //this.distanceL = distanceL;
+        //this.distanceR = distanceR;
+
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         rearLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -55,10 +61,10 @@ public class DriveTrain {
     }
 
     // Move robot based on input from gamepad and distance sensors.
-    public void moveRobot(Gamepad gamepad, DistanceSensor distL, DistanceSensor distR) {
+    public void moveRobot(Gamepad gamepad) {
 
-        double distanceLeft = distL.getDistance(DistanceUnit.MM);
-        double distanceRight = distR.getDistance(DistanceUnit.MM);
+        //double distanceLeft = this.distanceL.getDistance(DistanceUnit.MM);
+        //double distanceRight = this.distanceR.getDistance(DistanceUnit.MM);
         double theta;
         double power;
         double turn;
@@ -73,23 +79,22 @@ public class DriveTrain {
             x = 0.0;
 
             // Approach board until OPTIMAL_DIST.
-            if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
-                y = 0.0;
-            } else {
+            //if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
+            //    y = 0.0;
+            //} else {
                 y = APPROACH_POWER_SCALE * y;
-            }
+            //}
         }
 
         theta = Math.atan2(y, x);
         power = Math.hypot(x,y);
 
-
         // Automate turning for squaring up to scoring board.
-        if (gamepad.left_bumper) {
-            turn = calculateTurn(distanceLeft, distanceRight);
-        } else {
+        //if (gamepad.left_bumper) {
+        //    turn = calculateTurn(distanceLeft, distanceRight);
+        //} else {
             turn = gamepad.right_stick_x;
-        }
+        //}
 
 
         // Calculate initial power results to motors.
