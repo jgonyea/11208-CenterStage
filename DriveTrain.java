@@ -148,7 +148,7 @@ public class DriveTrain {
         double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
 
         // Limit turn.
-        turn = Math.min(-1, Math.max(1, turn));
+        turn = Math.max(-1, Math.min(1, turn));
 
         // todo: Check if we need to account for oscillations?
         // todo: Check if we need to set a minimum turn value.
