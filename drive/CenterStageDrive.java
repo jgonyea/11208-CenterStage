@@ -1,16 +1,16 @@
 package org.firstinspires.ftc.teamcode.drive;
 
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ACCEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_ACCEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_VEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_VEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MOTOR_VELO_PID;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.encoderTicksToInches;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.MAX_ACCEL;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.MAX_ANG_ACCEL;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.MAX_ANG_VEL;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.MAX_VEL;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.MOTOR_VELO_PID;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.RUN_USING_ENCODER;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.TRACK_WIDTH;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.encoderTicksToInches;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.kA;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.kStatic;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.kV;
 
 import androidx.annotation.NonNull;
 
@@ -96,7 +96,7 @@ public class CenterStageDrive extends MecanumDrive {
         // TODO: adjust the names of the following hardware devices to match your configuration
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
+                CenterStageConstants.LOGO_FACING_DIR, CenterStageConstants.USB_FACING_DIR));
         imu.initialize(parameters);
 
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
@@ -128,7 +128,7 @@ public class CenterStageDrive extends MecanumDrive {
         List<Integer> lastTrackingEncVels = new ArrayList<>();
 
         // TODO: if desired, use setLocalizer() to change the localization method
-        // setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels));
+        setLocalizer(new CenterStageLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels));
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(
                 follower, HEADING_PID, batteryVoltageSensor,
