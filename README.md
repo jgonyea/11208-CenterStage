@@ -9,6 +9,6 @@ This branch may contain the RoadRunner code and autonomous OpMode(s) at some tim
 * `cd` into that directory
 * Run the following command:
   ```
-  rm -vrf * && git clone -b quickstart1 --depth 1 --single-branch https://github.com/acmerobotics/road-runner-quickstart.git . && rm -rf README.md .git* && cd TeamCode/src/main/java/org/firstinspires/ftc && rm -r teamcode && git clone -b auto https://github.com/jgonyea/11208-CenterStage.git teamcode && cd ../../../../../../..
+  git clone -b quickstart1 --depth 1 --single-branch https://github.com/acmerobotics/road-runner-quickstart.git . && rm -rf README.md .git* && cd TeamCode/src/main/java/org/firstinspires/ftc && rm -r teamcode && git clone -b auto https://github.com/jgonyea/11208-CenterStage.git teamcode && cd ../../../../../../..
   ```
 * The directory is now an FTC SDK with RoadRunner installed, and with this branch cloned to teamcode.
