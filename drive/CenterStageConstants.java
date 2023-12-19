@@ -21,8 +21,9 @@ public class CenterStageConstants {
     /*
      * These are motor constants that should be listed online for your motors.
      */
-    public static final double TICKS_PER_REV = 1;
-    public static final double MAX_RPM = 1;
+    // https://www.gobilda.com/5203-series-yellow-jacket-planetary-gear-motor-19-2-1-ratio-24mm-length-8mm-rex-shaft-312-rpm-3-3-5v-encoder/
+    public static final double TICKS_PER_REV = ((((1 + (46.0 / 17.0))) * (1 + (46.0 / 11.0))) * 28);
+    public static final double MAX_RPM = 312;
 
     /*
      * Set RUN_USING_ENCODER to true to enable built-in hub velocity control using drive encoders.
@@ -44,8 +45,10 @@ public class CenterStageConstants {
      * angular distances although most angular parameters are wrapped in Math.toRadians() for
      * convenience. Make sure to exclude any gear ratio included in MOTOR_CONFIG from GEAR_RATIO.
      */
-    public static double WHEEL_RADIUS = 2; // in
+    // https://www.gobilda.com/strafer-chassis-kit-96mm-mecanum-wheels/
+    public static double WHEEL_RADIUS = (96.0 / 2.0) / 25.4; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (motor) speed
+    // TODO: Track width
     public static double TRACK_WIDTH = 1; // in
 
     /*
@@ -73,6 +76,7 @@ public class CenterStageConstants {
     /*
      * Adjust the orientations here to match your robot. See the FTC SDK documentation for details.
      */
+    // TODO: Control hub direction
     public static RevHubOrientationOnRobot.LogoFacingDirection LOGO_FACING_DIR =
             RevHubOrientationOnRobot.LogoFacingDirection.UP;
     public static RevHubOrientationOnRobot.UsbFacingDirection USB_FACING_DIR =

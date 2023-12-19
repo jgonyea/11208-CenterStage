@@ -99,10 +99,10 @@ public class CenterStageDrive extends MecanumDrive {
                 CenterStageConstants.LOGO_FACING_DIR, CenterStageConstants.USB_FACING_DIR));
         imu.initialize(parameters);
 
-        leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        leftRear = hardwareMap.get(DcMotorEx.class, "leftRear");
-        rightRear = hardwareMap.get(DcMotorEx.class, "rightRear");
-        rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
+        leftFront = hardwareMap.get(DcMotorEx.class, "driveFL");
+        leftRear = hardwareMap.get(DcMotorEx.class, "driveRL");
+        rightRear = hardwareMap.get(DcMotorEx.class, "driveRR");
+        rightFront = hardwareMap.get(DcMotorEx.class, "driveFR");
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 

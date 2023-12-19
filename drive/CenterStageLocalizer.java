@@ -27,10 +27,14 @@ import java.util.List;
  */
 @Config
 public class CenterStageLocalizer extends ThreeTrackingWheelLocalizer {
-    public static double TICKS_PER_REV = 0;
-    public static double WHEEL_RADIUS = 2; // in
+    // https://www.revrobotics.com/rev-11-1271/
+    public static double TICKS_PER_REV = 8192;
+
+    // https://openodometry.weebly.com/design.html
+    public static double WHEEL_RADIUS = (35.0 / 2.0) / 25.4; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
+    // TODO: Measure robot
     public static double LATERAL_DISTANCE = 10; // in; distance between the left and right wheels
     public static double FORWARD_OFFSET = 4; // in; offset of the lateral wheel
 
@@ -48,9 +52,10 @@ public class CenterStageLocalizer extends ThreeTrackingWheelLocalizer {
         lastEncPositions = lastTrackingEncPositions;
         lastEncVels = lastTrackingEncVels;
 
-        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "leftEncoder"));
-        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "rightEncoder"));
-        frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "frontEncoder"));
+        // TODO: Attach and configure encoders
+        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFL"));
+        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFR"));
+        frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveRL"));
 
         // TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
     }
