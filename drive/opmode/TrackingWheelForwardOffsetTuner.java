@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
+import org.firstinspires.ftc.teamcode.drive.CenterStageLocalizer;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
 /**
@@ -47,7 +48,7 @@ public class TrackingWheelForwardOffsetTuner extends LinearOpMode {
 
         CenterStageDrive drive = new CenterStageDrive(hardwareMap);
 
-        if (!(drive.getLocalizer() instanceof StandardTrackingWheelLocalizer)) {
+        if (!(drive.getLocalizer() instanceof CenterStageLocalizer)) {
             RobotLog.setGlobalErrorMsg("StandardTrackingWheelLocalizer is not being set in the "
                     + "drive class. Ensure that \"setLocalizer(new StandardTrackingWheelLocalizer"
                     + "(hardwareMap));\" is called in SampleMecanumDrive.java");
