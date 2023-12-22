@@ -50,12 +50,6 @@ public class KardiaTeleOp extends OpMode {
         distR = hardwareMap.get(DistanceSensor.class, "distR");
         distUnit = DistanceUnit.MM;
 
-        // Drivetrain hardware mapping.
-        frontLeft = hardwareMap.get(DcMotor.class, "driveFL");
-        frontRight = hardwareMap.get(DcMotor.class, "driveFR");
-        rearLeft = hardwareMap.get(DcMotor.class, "driveRL");
-        rearRight = hardwareMap.get(DcMotor.class, "driveRR");
-
         // Effector hardware mapping.
         armRotatorLeft = hardwareMap.get(Servo.class, "armL");
         armRotatorRight = hardwareMap.get(Servo.class, "armR");
@@ -72,7 +66,7 @@ public class KardiaTeleOp extends OpMode {
         launcher = hardwareMap.get(Servo.class, "launcher");
 
         // Class initializations.
-        drivetrain.init(frontLeft, frontRight, rearLeft, rearRight,
+        drivetrain.init(hardwareMap,
                         distL, distR, distUnit);
         telemetry.addData("Drivetrain: ", "Initialized");
         drone.init(launcher);

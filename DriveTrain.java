@@ -5,20 +5,17 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 
 
 public class DriveTrain {
 
-    private DcMotor frontLeft;
-    private DcMotor frontRight;
-    private DcMotor rearLeft;
-    private DcMotor rearRight;
+    private CenterStageDrive centerStageDrive;
 
     private DistanceSensor distanceL;
     private DistanceSensor distanceR;
@@ -39,31 +36,13 @@ public class DriveTrain {
     private double APPROACH_POWER_SCALE = 0.25;
 
     // Configure drivetrain motors.
-    public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,
+    public void init(HardwareMap hardwareMap,
                      DistanceSensor distanceL, DistanceSensor distanceR, DistanceUnit distanceUnit){
-        this.frontLeft = frontLeft;
-        this.frontRight = frontRight;
-        this.rearLeft = rearLeft;
-        this.rearRight = rearRight;
+        centerStageDrive = new CenterStageDrive(hardwareMap);
 
         this.distanceL = distanceL;
         this.distanceR = distanceR;
         this.distanceUnit = distanceUnit;
-
-        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        rearLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rearLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rearRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     // Move robot based on input from gamepad and distance sensors.
@@ -128,10 +107,7 @@ public class DriveTrain {
         }
 
         // Assign power to wheels.
-        frontRight.setPower(powerFrontRight);
-        frontLeft.setPower(powerFrontLeft);
-        rearRight.setPower(powerRearRight);
-        rearLeft.setPower(powerRearLeft);
+        centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
 
         // Todo: Add encoder wheels' metrics.
 
