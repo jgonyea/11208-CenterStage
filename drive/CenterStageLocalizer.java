@@ -34,30 +34,28 @@ public class CenterStageLocalizer extends ThreeTrackingWheelLocalizer {
     public static double WHEEL_RADIUS = (35.0 / 2.0) / 25.4; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
-    // TODO: Measure robot
-    public static double LATERAL_DISTANCE = 10; // in; distance between the left and right wheels
-    public static double FORWARD_OFFSET = 4; // in; offset of the lateral wheel
-
     private Encoder leftEncoder, rightEncoder, frontEncoder;
 
     private List<Integer> lastEncPositions, lastEncVels;
 
     public CenterStageLocalizer(HardwareMap hardwareMap, List<Integer> lastTrackingEncPositions, List<Integer> lastTrackingEncVels) {
         super(Arrays.asList(
-                new Pose2d(0, LATERAL_DISTANCE / 2, 0), // left
-                new Pose2d(0, -LATERAL_DISTANCE / 2, 0), // right
-                new Pose2d(FORWARD_OFFSET, 0, Math.toRadians(90)) // front
+                // Measured from robot
+                new Pose2d(+2.9375, +7.2813, Math.toRadians( 0)), // left
+                new Pose2d(+0.7563, -6.9688, Math.toRadians( 0)), // right
+                new Pose2d(-6.7500, -0.2813, Math.toRadians(90))  // front
         ));
 
         lastEncPositions = lastTrackingEncPositions;
         lastEncVels = lastTrackingEncVels;
 
-        // TODO: Attach and configure encoders
         leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFL"));
         rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFR"));
-        frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveRL"));
+        frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveRR"));
 
-        // TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
+        leftEncoder.setDirection(Encoder.Direction.REVERSE);
+        rightEncoder.setDirection(Encoder.Direction.REVERSE);
+        frontEncoder.setDirection(Encoder.Direction.REVERSE);
     }
 
     public static double encoderTicksToInches(double ticks) {

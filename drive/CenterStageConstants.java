@@ -48,8 +48,7 @@ public class CenterStageConstants {
     // https://www.gobilda.com/strafer-chassis-kit-96mm-mecanum-wheels/
     public static double WHEEL_RADIUS = (96.0 / 2.0) / 25.4; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (motor) speed
-    // TODO: Track width
-    public static double TRACK_WIDTH = 1; // in
+    public static double TRACK_WIDTH = 16.34; // in
 
     /*
      * These are the feedforward parameters used to model the drive motor behavior. If you are using
@@ -68,17 +67,36 @@ public class CenterStageConstants {
      * small and gradually increase them later after everything is working. All distance units are
      * inches.
      */
-    public static double MAX_VEL = 30;
-    public static double MAX_ACCEL = 30;
-    public static double MAX_ANG_VEL = Math.toRadians(60);
-    public static double MAX_ANG_ACCEL = Math.toRadians(60);
+    /*
+     * Note from LearnRoadRunner.com:
+     * The velocity and acceleration constraints were calculated based on the following equation:
+     * ((MAX_RPM / 60) * GEAR_RATIO * WHEEL_RADIUS * 2 * Math.PI) * 0.85
+     * Resulting in 52.48180821614297 in/s.
+     * This is only 85% of the theoretical maximum velocity of the bot, following the recommendation above.
+     * This is capped at 85% because there are a number of variables that will prevent your bot from actually
+     * reaching this maximum velocity: voltage dropping over the game, bot weight, general mechanical inefficiencies, etc.
+     * However, you can push this higher yourself if you'd like. Perhaps raise it to 90-95% of the theoretically
+     * max velocity. The theoretically maximum velocity is 61.74330378369762 in/s.
+     * Just make sure that your bot can actually reach this maximum velocity. Path following will be detrimentally
+     * affected if it is aiming for a velocity not actually possible.
+     *
+     * The maximum acceleration is somewhat arbitrary and it is recommended that you tweak this yourself based on
+     * actual testing. Just set it at a reasonable value and keep increasing until your path following starts
+     * to degrade. As of now, it simply mirrors the velocity, resulting in 52.48180821614297 in/s/s
+     *
+     * Maximum Angular Velocity is calculated as: maximum velocity / trackWidth * (180 / Math.PI) but capped at 360°/s.
+     * You are free to raise this on your own if you would like. It is best determined through experimentation.
+     */
+    public static double MAX_VEL = 52.48180821614297;
+    public static double MAX_ACCEL = 52.48180821614297;
+    public static double MAX_ANG_VEL = Math.toRadians(184.02607784577722);
+    public static double MAX_ANG_ACCEL = Math.toRadians(184.02607784577722);
 
     /*
      * Adjust the orientations here to match your robot. See the FTC SDK documentation for details.
      */
-    // TODO: Control hub direction
     public static RevHubOrientationOnRobot.LogoFacingDirection LOGO_FACING_DIR =
-            RevHubOrientationOnRobot.LogoFacingDirection.UP;
+            RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
     public static RevHubOrientationOnRobot.UsbFacingDirection USB_FACING_DIR =
             RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 
