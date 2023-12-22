@@ -42,13 +42,13 @@ public class CenterStageLocalizer extends TwoTrackingWheelLocalizer {
     public CenterStageLocalizer(HardwareMap hardwareMap, CenterStageDrive drive) {
         super(Arrays.asList(
                 // Measured from robot
-                new Pose2d(+2.9375, +7.2813, Math.toRadians( 0)), // left
+                new Pose2d(+0.7563, -6.9688, Math.toRadians( 0)), // right
                 new Pose2d(-6.7500, -0.2813, Math.toRadians(90))  // front
         ));
 
         this.drive = drive;
 
-        parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFL"));
+        parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFR"));
         prpendicEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveRR"));
 
         parallelEncoder.setDirection(Encoder.Direction.REVERSE);
