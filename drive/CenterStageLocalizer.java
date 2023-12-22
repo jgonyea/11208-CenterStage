@@ -4,9 +4,10 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
+import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
 import java.util.Arrays;
@@ -18,15 +19,15 @@ import java.util.List;
  *    /--------------\
  *    |     ____     |
  *    |     ----     |
- *    | ||        || |
- *    | ||        || |
+ *    | ||           |
+ *    | ||           |
  *    |              |
  *    |              |
  *    \--------------/
  *
  */
 @Config
-public class CenterStageLocalizer extends ThreeTrackingWheelLocalizer {
+public class CenterStageLocalizer extends TwoTrackingWheelLocalizer {
     // https://www.revrobotics.com/rev-11-1271/
     public static double TICKS_PER_REV = 8192;
 
@@ -34,69 +35,55 @@ public class CenterStageLocalizer extends ThreeTrackingWheelLocalizer {
     public static double WHEEL_RADIUS = (35.0 / 2.0) / 25.4; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
-    private Encoder leftEncoder, rightEncoder, frontEncoder;
+    private Encoder parallelEncoder, prpendicEncoder;
 
-    private List<Integer> lastEncPositions, lastEncVels;
+    private CenterStageDrive drive;
 
-    public CenterStageLocalizer(HardwareMap hardwareMap, List<Integer> lastTrackingEncPositions, List<Integer> lastTrackingEncVels) {
+    public CenterStageLocalizer(HardwareMap hardwareMap, CenterStageDrive drive) {
         super(Arrays.asList(
                 // Measured from robot
                 new Pose2d(+2.9375, +7.2813, Math.toRadians( 0)), // left
-                new Pose2d(+0.7563, -6.9688, Math.toRadians( 0)), // right
                 new Pose2d(-6.7500, -0.2813, Math.toRadians(90))  // front
         ));
 
-        lastEncPositions = lastTrackingEncPositions;
-        lastEncVels = lastTrackingEncVels;
+        this.drive = drive;
 
-        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFL"));
-        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFR"));
-        frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveRR"));
+        parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFL"));
+        prpendicEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveRR"));
 
-        leftEncoder.setDirection(Encoder.Direction.REVERSE);
-        rightEncoder.setDirection(Encoder.Direction.REVERSE);
-        frontEncoder.setDirection(Encoder.Direction.REVERSE);
+        parallelEncoder.setDirection(Encoder.Direction.REVERSE);
+        prpendicEncoder.setDirection(Encoder.Direction.REVERSE);
     }
 
     public static double encoderTicksToInches(double ticks) {
         return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
     }
 
+    @Override
+    public double getHeading() {
+        return drive.getRawExternalHeading();
+    }
+
+    @Override
+    public Double getHeadingVelocity() {
+        return drive.getExternalHeadingVelocity();
+    }
+
     @NonNull
     @Override
     public List<Double> getWheelPositions() {
-        int leftPos = leftEncoder.getCurrentPosition();
-        int rightPos = rightEncoder.getCurrentPosition();
-        int frontPos = frontEncoder.getCurrentPosition();
-
-        lastEncPositions.clear();
-        lastEncPositions.add(leftPos);
-        lastEncPositions.add(rightPos);
-        lastEncPositions.add(frontPos);
-
         return Arrays.asList(
-                encoderTicksToInches(leftPos),
-                encoderTicksToInches(rightPos),
-                encoderTicksToInches(frontPos)
+                encoderTicksToInches(parallelEncoder.getCurrentPosition()),
+                encoderTicksToInches(prpendicEncoder.getCurrentPosition())
         );
     }
 
     @NonNull
     @Override
     public List<Double> getWheelVelocities() {
-        int leftVel = (int) leftEncoder.getCorrectedVelocity();
-        int rightVel = (int) rightEncoder.getCorrectedVelocity();
-        int frontVel = (int) frontEncoder.getCorrectedVelocity();
-
-        lastEncVels.clear();
-        lastEncVels.add(leftVel);
-        lastEncVels.add(rightVel);
-        lastEncVels.add(frontVel);
-
         return Arrays.asList(
-                encoderTicksToInches(leftVel),
-                encoderTicksToInches(rightVel),
-                encoderTicksToInches(frontVel)
+                encoderTicksToInches(parallelEncoder.getCorrectedVelocity()),
+                encoderTicksToInches(prpendicEncoder.getCorrectedVelocity())
         );
     }
 }
