@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  */
 @TeleOp
 public class DriveTrainTest extends OpMode {
-    DriveTrain drive;
+    DriveTrain drive = new DriveTrain();
     @Override
     public void init() {
         drive.init(hardwareMap);
