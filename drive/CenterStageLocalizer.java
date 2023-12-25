@@ -48,7 +48,7 @@ public class CenterStageLocalizer extends TwoTrackingWheelLocalizer {
 
         this.drive = drive;
 
-        parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFR"));
+        parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveFL"));
         prpendicEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "driveRR"));
 
         parallelEncoder.setDirection(Encoder.Direction.REVERSE);
