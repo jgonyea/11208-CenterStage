@@ -35,7 +35,7 @@ public class DriveTrain {
     // Scales approach speed.
     private double APPROACH_POWER_SCALE = 0.25;
 
-    // Configure drivetrain motors.
+    // Initialize with distance sensors and drivetrain.
     public void init(HardwareMap hardwareMap,
                      DistanceSensor distanceL, DistanceSensor distanceR, DistanceUnit distanceUnit){
         centerStageDrive = new CenterStageDrive(hardwareMap);
@@ -43,6 +43,11 @@ public class DriveTrain {
         this.distanceL = distanceL;
         this.distanceR = distanceR;
         this.distanceUnit = distanceUnit;
+    }
+
+    // Initialize with only drivetrain.
+    public void init(HardwareMap hardwareMap) {
+        centerStageDrive = new CenterStageDrive(hardwareMap);
     }
 
     // Move robot based on input from gamepad and distance sensors.
@@ -56,28 +61,74 @@ public class DriveTrain {
         double x;
         double y;
 
-        // Automate turning for squaring up to scoring board.
-        if (gamepad.left_bumper) {
-            turn = calculateTurn(distanceLeft, distanceRight);
-        } else {
-            turn = gamepad.right_stick_x;
-        }
-
-        // Automate approaching the scoring board.
-        if (gamepad.right_bumper) {
-            // Locks turning.
-            x = 0.0;
-
-            // Approach board until OPTIMAL_DIST.
-            if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
-                y = 0.0;
+            // Automate turning for squaring up to scoring board.
+            if (gamepad.left_bumper) {
+                turn = calculateTurn(distanceLeft, distanceRight);
             } else {
-                y = APPROACH_POWER_SCALE * gamepad.left_stick_y;
+                turn = gamepad.right_stick_x;
             }
-        } else {
-            x = gamepad.left_stick_x;
-            y = gamepad.left_stick_y;
+
+            // Automate approaching the scoring board.
+            if (gamepad.right_bumper) {
+                // Locks turning and strafing.
+                turn = 0.0;
+                x = 0.0;
+
+                // Approach board until OPTIMAL_DIST.
+                if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST) {
+                    y = 0.0;
+                } else {
+                    y = APPROACH_POWER_SCALE * gamepad.left_stick_y;
+                }
+            } else {
+                x = gamepad.left_stick_x;
+                y = gamepad.left_stick_y;
+            }
+
+        // Calculate values based on math code from https://www.youtube.com/@gavinford8924
+        theta = Math.atan2(y, x);
+        power = Math.hypot(x,y);
+
+        // Calculate initial power results to motors.
+        double sin = Math.sin(theta - Math.PI/4);
+        double cos = Math.cos(theta - Math.PI/4);
+        double max = Math.max(
+                Math.abs(sin),
+                Math.abs(cos)
+        );
+
+        // Set power levels for each wheel.
+        double powerFrontLeft = power * (cos / max) + turn;
+        double powerFrontRight = power * (sin / max) - turn;
+        double powerRearLeft = power * (sin / max) + turn;
+        double powerRearRight = power * (cos / max) - turn;
+
+        // Rescale power if beyond maximum.
+        double scale = power + Math.abs(turn);
+        if (scale > 1) {
+            powerFrontLeft /= scale;
+            powerFrontRight /= scale;
+            powerRearLeft  /= scale;
+            powerRearRight /= scale;
         }
+
+        // Assign power to wheels.
+        centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
+        centerStageDrive.update();
+    }
+
+    // Move robot based on input from gamepad only.
+    public void moveRobotWithoutDistance(Gamepad gamepad) {
+
+        double theta;
+        double power;
+        double turn;
+        double x;
+        double y;
+
+        x = gamepad.left_stick_x;
+        y = gamepad.left_stick_y;
+        turn = gamepad.right_stick_x;
 
         // Calculate values based on math code from https://www.youtube.com/@gavinford8924
         theta = Math.atan2(y, x);

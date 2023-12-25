@@ -2,9 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * This is a basic TeleOp for testing the DriveTrain class.
@@ -12,19 +9,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @TeleOp
 public class DriveTrainTest extends OpMode {
     DriveTrain drive;
-    DistanceSensor distL;
-    DistanceSensor distR;
-    DistanceUnit distUnit;
     @Override
     public void init() {
-        distL = hardwareMap.get(DistanceSensor.class, "distL");
-        distR = hardwareMap.get(DistanceSensor.class, "distR");
-        distUnit = DistanceUnit.MM;
-        drive.init(hardwareMap, distL, distR, distUnit);
+        drive.init(hardwareMap);
     }
 
     @Override
     public void loop() {
-        drive.moveRobot(gamepad1);
+        drive.moveRobotWithoutDistance(gamepad1);
     }
 }
