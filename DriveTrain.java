@@ -108,9 +108,7 @@ public class DriveTrain {
 
         // Assign power to wheels.
         centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
-
-        // Todo: Add encoder wheels' metrics.
-
+        centerStageDrive.update();
     }
 
     // Scales turning values to square robot based on distance sensor input.
