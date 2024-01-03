@@ -73,15 +73,14 @@ public class DriveTrain {
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
         double theta;
         double power;
-        double turn;
-        double x;
-        double y;
+
+        double x = -gamepad.left_stick_x;
+        double y = gamepad.left_stick_y;
+        double turn = -gamepad.right_stick_x;
 
         // Automate turning for squaring up to scoring board.
         if (gamepad.left_bumper) {
             turn = calculateTurn(distanceLeft, distanceRight);
-        } else {
-            turn = -gamepad.right_stick_x;
         }
 
         // Automate approaching the scoring board.
@@ -95,11 +94,8 @@ public class DriveTrain {
                 y = 0.0;
             } else {
                 double difference = ((distanceLeft + distanceRight) / 2) - OPTIMAL_DIST;
-                y = Math.max(0.05, Math.min(1, difference / MAX_DRIVE_DIFFERENCE));
+                y = Math.max(0.1, Math.min(1, difference / MAX_DRIVE_DIFFERENCE));
             }
-        } else {
-            x = -gamepad.left_stick_x;
-            y = gamepad.left_stick_y;
         }
 
         // Calculate values based on math code from https://www.youtube.com/@gavinford8924
@@ -135,8 +131,6 @@ public class DriveTrain {
         rearRight.setPower(powerRearRight);
         rearLeft.setPower(powerRearLeft);
 
-        // Todo: Add encoder wheels' metrics.
-
     }
 
     // Scales turning values to square robot based on distance sensor input.
@@ -150,7 +144,7 @@ public class DriveTrain {
         double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
 
         // Limit turn.
-        turn = Math.max(-1, Math.min(1, turn));
+        turn = Math.max(-0.5, Math.min(0.5, turn));
 
         // todo: Check if we need to account for oscillations?
         // todo: Check if we need to set a minimum turn value.
