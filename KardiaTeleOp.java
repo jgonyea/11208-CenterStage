@@ -98,5 +98,7 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
         telemetry.addData("Current Effector State: ", effector.getCurrentState());
+        telemetry.addData("distL", distL.getDistance(distUnit));
+        telemetry.addData("distR", distR.getDistance(distUnit));
     }
 }

@@ -27,16 +27,16 @@ public class DriveTrain {
 
     // Todo: fix these fake values.
     // Optimal distance for robot to be from scoring board.
-    private double OPTIMAL_DIST = 10;
+    private double OPTIMAL_DIST = 70;
 
     // Minimum difference in distance sensors to each other for auto-correction to engage.
-    private double MINIMUM_DIST = 2;
+    private double MINIMUM_DIST = 5;
 
     // Difference between distance values that should set turn to 100%.
-    private double MAX_TURN_DIFFERENCE = 300;
+    private double MAX_TURN_DIFFERENCE = 200;
 
-    // Scales approach speed.
-    private double APPROACH_POWER_SCALE = 0.25;
+    // Distance from OPTIMAL_DIST that should make motors run at 100% backwards.
+    private double MAX_DRIVE_DIFFERENCE = 500;
 
     // Configure drivetrain motors.
     public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,
@@ -81,22 +81,24 @@ public class DriveTrain {
         if (gamepad.left_bumper) {
             turn = calculateTurn(distanceLeft, distanceRight);
         } else {
-            turn = gamepad.right_stick_x;
+            turn = -gamepad.right_stick_x;
         }
 
         // Automate approaching the scoring board.
         if (gamepad.right_bumper) {
             // Locks turning.
             x = 0.0;
+            turn = 0.0;
 
             // Approach board until OPTIMAL_DIST.
             if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
                 y = 0.0;
             } else {
-                y = APPROACH_POWER_SCALE * gamepad.left_stick_y;
+                double difference = ((distanceLeft + distanceRight) / 2) - OPTIMAL_DIST;
+                y = Math.max(0.05, Math.min(1, difference / MAX_DRIVE_DIFFERENCE));
             }
         } else {
-            x = gamepad.left_stick_x;
+            x = -gamepad.left_stick_x;
             y = gamepad.left_stick_y;
         }
 
@@ -148,7 +150,7 @@ public class DriveTrain {
         double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
 
         // Limit turn.
-        turn = Math.min(-1, Math.max(1, turn));
+        turn = Math.max(-1, Math.min(1, turn));
 
         // todo: Check if we need to account for oscillations?
         // todo: Check if we need to set a minimum turn value.
