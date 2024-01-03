@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class DriveTrain {
 
+    private double throttle = 1;
+
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor rearLeft;
@@ -37,6 +39,16 @@ public class DriveTrain {
 
     // Distance from OPTIMAL_DIST that should make motors run at 100% backwards.
     private double MAX_DRIVE_DIFFERENCE = 500;
+
+    // Scales approach speed.
+    private double APPROACH_POWER_SCALE = 0.25;
+
+    private boolean isDownPressed;
+    private boolean isUpPressed;
+    private static final double gearThree = 1;
+    private static final double gearTwo = .5;
+    private static final double gearOne = .25;
+    private int gear = 3;
 
     // Configure drivetrain motors.
     public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,
@@ -73,15 +85,15 @@ public class DriveTrain {
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
         double theta;
         double power;
-        double turn;
-        double x;
-        double y;
+
+        // Calculate values based on math code from https://www.youtube.com/@gavinford8924
+        double x = -gamepad.left_stick_x;
+        double y = gamepad.left_stick_y;
+        double turn = -gamepad.right_stick_x;
 
         // Automate turning for squaring up to scoring board.
         if (gamepad.left_bumper) {
             turn = calculateTurn(distanceLeft, distanceRight);
-        } else {
-            turn = -gamepad.right_stick_x;
         }
 
         // Automate approaching the scoring board.
@@ -95,11 +107,8 @@ public class DriveTrain {
                 y = 0.0;
             } else {
                 double difference = ((distanceLeft + distanceRight) / 2) - OPTIMAL_DIST;
-                y = Math.max(0.05, Math.min(1, difference / MAX_DRIVE_DIFFERENCE));
+                y = Math.max(0.1, Math.min(1, difference / MAX_DRIVE_DIFFERENCE));
             }
-        } else {
-            x = -gamepad.left_stick_x;
-            y = gamepad.left_stick_y;
         }
 
         // Calculate values based on math code from https://www.youtube.com/@gavinford8924
@@ -120,6 +129,34 @@ public class DriveTrain {
         double powerRearLeft = power * (sin / max) + turn;
         double powerRearRight = power * (cos / max) - turn;
 
+        //create "gears" for the drive train
+        if (gamepad.dpad_up && !isUpPressed) {
+            isUpPressed = true;
+            if (gear < 3) {
+                gear++;
+            }
+        }
+        if (!gamepad.dpad_up) {
+            isUpPressed = false;
+        }
+
+        if (gamepad.dpad_down && !isDownPressed) {
+            isDownPressed = true;
+            if (gear > 1) {
+                gear--;
+            }
+        }
+        if (!gamepad.dpad_down) {
+            isDownPressed = false;
+        }
+
+        // Don't allow gearing to affect the auto-squaring/ auto-approach.
+        if (!gamepad.left_bumper && !gamepad.right_bumper) {
+            throttle = gear / 3.0;
+        } else {
+            throttle = 0.7;
+        }
+
         // Rescale power if beyond maximum.
         double scale = power + Math.abs(turn);
         if (scale > 1) {
@@ -130,12 +167,10 @@ public class DriveTrain {
         }
 
         // Assign power to wheels.
-        frontRight.setPower(powerFrontRight);
-        frontLeft.setPower(powerFrontLeft);
-        rearRight.setPower(powerRearRight);
-        rearLeft.setPower(powerRearLeft);
-
-        // Todo: Add encoder wheels' metrics.
+        frontRight.setPower(powerFrontRight * throttle);
+        frontLeft.setPower(powerFrontLeft * throttle);
+        rearRight.setPower(powerRearRight * throttle);
+        rearLeft.setPower(powerRearLeft * throttle);
 
     }
 
@@ -150,12 +185,12 @@ public class DriveTrain {
         double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
 
         // Limit turn.
-        turn = Math.max(-1, Math.min(1, turn));
-
-        // todo: Check if we need to account for oscillations?
-        // todo: Check if we need to set a minimum turn value.
+        turn = Math.max(-0.5, Math.min(0.5, turn));
 
         return turn;
     }
 
+    public double getThrottle(){
+        return this.throttle;
+    }
 }
