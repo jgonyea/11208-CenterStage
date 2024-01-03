@@ -25,9 +25,9 @@ public class Effector {
 
     // Values based on empirical testing.
     private final static double ARM_DRIVING_POSITION = 0.400;
-    private final static double ARM_INTAKE_POSITION = 0.379;
+    private final static double ARM_INTAKE_POSITION = 0.394;
     private final static double ARM_SCORING_POSITION = 0.890;
-    private final static double ARM_STAGED_INTAKE_POSITION = 0.390;
+    private final static double ARM_STAGED_INTAKE_POSITION = 0.410;
     private final static double ARM_STAGED_LIFT_POSITION = 0.450;
 
     private final static double HAND_DRIVING_POSITION = 0.7;

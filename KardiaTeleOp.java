@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 
 @TeleOp(name="KardiaTeleOp")
 public class KardiaTeleOp extends OpMode {
@@ -18,6 +20,7 @@ public class KardiaTeleOp extends OpMode {
     DcMotor rearLeft;
     DistanceSensor distL;
     DistanceSensor distR;
+    DistanceUnit distUnit;
 
     Servo armRotatorLeft;
     Servo armRotatorRight;
@@ -43,8 +46,9 @@ public class KardiaTeleOp extends OpMode {
         // Hardware mapping.
 
         // Distance Sensors
-        //distL = hardwareMap.get(DistanceSensor.class, "distL");
-        //distR = hardwareMap.get(DistanceSensor.class, "distR");
+        distL = hardwareMap.get(DistanceSensor.class, "distL");
+        distR = hardwareMap.get(DistanceSensor.class, "distR");
+        distUnit = DistanceUnit.MM;
 
         // Drivetrain hardware mapping.
         frontLeft = hardwareMap.get(DcMotor.class, "driveFL");
@@ -68,7 +72,8 @@ public class KardiaTeleOp extends OpMode {
         launcher = hardwareMap.get(Servo.class, "launcher");
 
         // Class initializations.
-        drivetrain.init(frontLeft, frontRight, rearLeft, rearRight);
+        drivetrain.init(frontLeft, frontRight, rearLeft, rearRight,
+                        distL, distR, distUnit);
         telemetry.addData("Drivetrain: ", "Initialized");
         drone.init(launcher);
         telemetry.addData("Drone Launcher: ", "Initialized");
@@ -93,5 +98,7 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
         telemetry.addData("Current Effector State: ", effector.getCurrentState());
+        telemetry.addData("distL", distL.getDistance(distUnit));
+        telemetry.addData("distR", distR.getDistance(distUnit));
     }
 }

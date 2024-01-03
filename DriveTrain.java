@@ -22,27 +22,33 @@ public class DriveTrain {
 
     private DistanceSensor distanceL;
     private DistanceSensor distanceR;
+    private DistanceUnit distanceUnit;
 
 
     // Todo: fix these fake values.
     // Optimal distance for robot to be from scoring board.
-    private double OPTIMAL_DIST = 10;
+    private double OPTIMAL_DIST = 70;
 
     // Minimum difference in distance sensors to each other for auto-correction to engage.
-    private double MINIMUM_DIST = 2;
+    private double MINIMUM_DIST = 5;
 
-    // Scales approach speed.
-    private double APPROACH_POWER_SCALE = 0.25;
+    // Difference between distance values that should set turn to 100%.
+    private double MAX_TURN_DIFFERENCE = 200;
+
+    // Distance from OPTIMAL_DIST that should make motors run at 100% backwards.
+    private double MAX_DRIVE_DIFFERENCE = 500;
 
     // Configure drivetrain motors.
-    public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight){
+    public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,
+                     DistanceSensor distanceL, DistanceSensor distanceR, DistanceUnit distanceUnit){
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.rearLeft = rearLeft;
         this.rearRight = rearRight;
 
-        //this.distanceL = distanceL;
-        //this.distanceR = distanceR;
+        this.distanceL = distanceL;
+        this.distanceR = distanceR;
+        this.distanceUnit = distanceUnit;
 
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -63,39 +69,42 @@ public class DriveTrain {
     // Move robot based on input from gamepad and distance sensors.
     public void moveRobot(Gamepad gamepad) {
 
-        //double distanceLeft = this.distanceL.getDistance(DistanceUnit.MM);
-        //double distanceRight = this.distanceR.getDistance(DistanceUnit.MM);
+        double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
+        double distanceRight = this.distanceR.getDistance(this.distanceUnit);
         double theta;
         double power;
         double turn;
+        double x;
+        double y;
 
-        // Calculate values based on math code from https://www.youtube.com/@gavinford8924
-        double x = gamepad.left_stick_x;
-        double y = gamepad.left_stick_y;
+        // Automate turning for squaring up to scoring board.
+        if (gamepad.left_bumper) {
+            turn = calculateTurn(distanceLeft, distanceRight);
+        } else {
+            turn = -gamepad.right_stick_x;
+        }
 
         // Automate approaching the scoring board.
         if (gamepad.right_bumper) {
             // Locks turning.
             x = 0.0;
+            turn = 0.0;
 
             // Approach board until OPTIMAL_DIST.
-            //if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
-            //    y = 0.0;
-            //} else {
-                y = APPROACH_POWER_SCALE * y;
-            //}
+            if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
+                y = 0.0;
+            } else {
+                double difference = ((distanceLeft + distanceRight) / 2) - OPTIMAL_DIST;
+                y = Math.max(0.05, Math.min(1, difference / MAX_DRIVE_DIFFERENCE));
+            }
+        } else {
+            x = -gamepad.left_stick_x;
+            y = gamepad.left_stick_y;
         }
 
+        // Calculate values based on math code from https://www.youtube.com/@gavinford8924
         theta = Math.atan2(y, x);
         power = Math.hypot(x,y);
-
-        // Automate turning for squaring up to scoring board.
-        //if (gamepad.left_bumper) {
-        //    turn = calculateTurn(distanceLeft, distanceRight);
-        //} else {
-            turn = gamepad.right_stick_x;
-        //}
-
 
         // Calculate initial power results to motors.
         double sin = Math.sin(theta - Math.PI/4);
@@ -132,20 +141,20 @@ public class DriveTrain {
 
     // Scales turning values to square robot based on distance sensor input.
     private double calculateTurn(double distanceLeft, double distanceRight){
-        // A negative turn value is rotating the robot counter-clockwise.
-        // A positive turn value is rotating the robot clockwise.
-        double turn = distanceLeft - distanceRight;
-
-        // Don't turn if distance values are both 0.
-        if (distanceLeft == 0 && distanceRight == 0) {
-            return 0.0;
+        if (Math.abs(distanceLeft - distanceRight) < MINIMUM_DIST) {
+            return 0;
         }
 
-        // Scale turn.
-        turn = turn / Math.max(distanceLeft, distanceRight);
+        // A negative turn value is rotating the robot counter-clockwise.
+        // A positive turn value is rotating the robot clockwise.
+        double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
+
+        // Limit turn.
+        turn = Math.max(-1, Math.min(1, turn));
 
         // todo: Check if we need to account for oscillations?
         // todo: Check if we need to set a minimum turn value.
+
         return turn;
     }
 
