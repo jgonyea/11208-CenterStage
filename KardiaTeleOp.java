@@ -50,6 +50,12 @@ public class KardiaTeleOp extends OpMode {
         distR = hardwareMap.get(DistanceSensor.class, "distR");
         distUnit = DistanceUnit.MM;
 
+        // Drivetrain hardware mapping.
+        frontLeft = hardwareMap.get(DcMotor.class, "driveFL");
+        frontRight = hardwareMap.get(DcMotor.class, "driveFR");
+        rearLeft = hardwareMap.get(DcMotor.class, "driveRL");
+        rearRight = hardwareMap.get(DcMotor.class, "driveRR");
+
         // Effector hardware mapping.
         armRotatorLeft = hardwareMap.get(Servo.class, "armL");
         armRotatorRight = hardwareMap.get(Servo.class, "armR");
@@ -75,7 +81,7 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("End Effector: ", "Initialized");
         lift.init(liftMotorLeft, liftMotorRight);
         telemetry.addData("Lift: ", "Initialized");
-        
+
 
         telemetry.addData("Robot Initialization", "Complete");
         telemetry.addData("Current Effector State: ", effector.getCurrentState());
@@ -92,5 +98,8 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
         telemetry.addData("Current Effector State: ", effector.getCurrentState());
+        telemetry.addData("distL", distL.getDistance(distUnit));
+        telemetry.addData("distR", distR.getDistance(distUnit));
+        telemetry.addData("Throttle Gear: ", drivetrain.getThrottle());
     }
 }

@@ -25,9 +25,9 @@ public class Effector {
 
     // Values based on empirical testing.
     private final static double ARM_DRIVING_POSITION = 0.400;
-    private final static double ARM_INTAKE_POSITION = 0.379;
+    private final static double ARM_INTAKE_POSITION = 0.386;
     private final static double ARM_SCORING_POSITION = 0.890;
-    private final static double ARM_STAGED_INTAKE_POSITION = 0.390;
+    private final static double ARM_STAGED_INTAKE_POSITION = 0.410;
     private final static double ARM_STAGED_LIFT_POSITION = 0.450;
 
     private final static double HAND_DRIVING_POSITION = 0.7;
@@ -43,11 +43,11 @@ public class Effector {
 
     // Timings
     private ElapsedTime timer = new ElapsedTime();
-    private final static double STAGED_INTAKE_TIME = 1.0;
+    private final static double STAGED_INTAKE_TIME = 0.3;
+    private final static double STAGED_LIFT_TIME = 1.0;
 
     private EffectorState currentState;
     private boolean is_a_pressed = false;
-    private boolean is_b_pressed = false;
     private boolean is_y_pressed = false;
 
 
@@ -148,7 +148,7 @@ public class Effector {
                 armRotatorLeft.setPosition(ARM_STAGED_LIFT_POSITION);
                 armRotatorRight.setPosition(ARM_STAGED_LIFT_POSITION);
                 handActuator.setPosition(HAND_DRIVING_POSITION);
-                if (timer.seconds() > STAGED_INTAKE_TIME){
+                if (timer.seconds() > STAGED_LIFT_TIME){
                     wristRotator.setPosition(WRIST_INTAKE_POSITION);
                 }
 
