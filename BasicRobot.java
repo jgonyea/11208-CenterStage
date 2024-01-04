@@ -17,7 +17,10 @@ public class BasicRobot extends OpMode {
     DcMotor spin;
     boolean zeroed;
     boolean spinDir;
-    private static final double THROTTLE = 0.75;
+    double throttle;
+    boolean throttlePressed;
+    boolean invert;
+    boolean invertPressed;
     private static final double LEFT_CORRECTION = 0.0111;
     private static final double RIGHT_CORRECTION = 0.001;
 
@@ -33,7 +36,6 @@ public class BasicRobot extends OpMode {
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         rearLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        spin.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -47,24 +49,57 @@ public class BasicRobot extends OpMode {
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         spin.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        zeroed = false;
+        zeroed = true;
         spinDir = true;
+        invert = false;
+        invertPressed = false;
+        throttle = 1;
+        throttlePressed = false;
     }
 
     @Override
     public void loop() {
-        // Calculate values
+        // Invert button
+        int dpadCount = 0;
+        if (gamepad1.dpad_down) {
+            dpadCount++;
+        }
+        if (gamepad1.dpad_left) {
+            dpadCount++;
+        }
+        if (gamepad1.dpad_up) {
+            dpadCount++;
+        }
+        if (gamepad1.dpad_right) {
+            dpadCount++;
+        }
+
+        if ((dpadCount > 2) && !invertPressed) {
+            invertPressed = true;
+            invert = !invert;
+        }
+        if (dpadCount == 0) {
+            invertPressed = false;
+        }
+
+        // Read gamepad
         double x = -gamepad1.left_stick_x;
-        double y = +gamepad1.left_stick_y;
-        double theta = Math.atan2(y, x);
-        double power = Math.hypot(x, y);
+        double y = Math.max(-1, Math.min(1, gamepad1.left_stick_y + gamepad1.right_stick_y));
         double turn = gamepad1.right_stick_x;
+
+        // Calculate values
         if (x > 0) {
             turn -= LEFT_CORRECTION * x;
         }
         if (x < 0){
             turn += RIGHT_CORRECTION * x;
         }
+        if (invert) {
+            x = -x;
+            y = -y;
+        }
+        double theta = Math.atan2(y, x);
+        double power = Math.hypot(x, y);
 
         // Calculate initial power results to motors.
         double sin = Math.sin(theta - Math.PI/4);
@@ -90,10 +125,10 @@ public class BasicRobot extends OpMode {
         }
 
         // Assign power to wheels.
-        frontRight.setPower(powerFrontRight * THROTTLE);
-        frontLeft.setPower(powerFrontLeft * THROTTLE);
-        rearRight.setPower(powerRearRight * THROTTLE);
-        rearLeft.setPower(powerRearLeft * THROTTLE);
+        frontRight.setPower(powerFrontRight * throttle);
+        frontLeft.setPower(powerFrontLeft * throttle);
+        rearRight.setPower(powerRearRight * throttle);
+        rearLeft.setPower(powerRearLeft * throttle);
 
         // Spin based on left trigger.
         if (gamepad1.left_trigger == 0 && !zeroed) {
@@ -107,6 +142,25 @@ public class BasicRobot extends OpMode {
             spin.setPower(+gamepad1.left_trigger);
         } else {
             spin.setPower(-gamepad1.left_trigger);
+        }
+
+        // Throttle based on right trigger/button.
+        if (gamepad1.right_bumper && !throttlePressed) {
+            throttlePressed = true;
+            throttle = (1 - gamepad1.right_trigger);
+        }
+        if (!gamepad1.right_bumper) {
+            throttlePressed = false;
+        }
+
+        // Telemetry
+        if (invert) {
+            telemetry.addLine("Inverted");
+        } else {
+            telemetry.addLine("Normal");
+        }
+        if (throttle < 1) {
+            telemetry.addLine("Throttled to " + Math.round(throttle * 100) + "%");
         }
     }
 }
