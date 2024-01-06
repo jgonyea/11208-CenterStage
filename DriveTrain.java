@@ -25,8 +25,8 @@ public class DriveTrain {
     private DistanceSensor distanceL;
     private DistanceSensor distanceR;
     private DistanceUnit distanceUnit;
-    private double[] distanceLSmoothing;
-    private double[] distanceRSmoothing;
+    private ArraySmoother averagerL;
+    private ArraySmoother averagerR;
     private static final int SMOOTHING_LENGTH = 100;
 
 
@@ -64,8 +64,8 @@ public class DriveTrain {
         this.distanceL = distanceL;
         this.distanceR = distanceR;
         this.distanceUnit = distanceUnit;
-        this.distanceLSmoothing = new double[SMOOTHING_LENGTH];
-        this.distanceRSmoothing = new double[SMOOTHING_LENGTH];
+        this.averagerL = new ArraySmoother(SMOOTHING_LENGTH);
+        this.averagerR = new ArraySmoother(SMOOTHING_LENGTH);
 
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -88,8 +88,8 @@ public class DriveTrain {
 
         double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
-        distanceLeft = smoothedAverage(distanceLSmoothing, distanceLeft);
-        distanceRight = smoothedAverage(distanceRSmoothing, distanceRight);
+        distanceLeft = averagerL.smooth(distanceLeft);
+        distanceRight = averagerR.smooth(distanceRight);
         double theta;
         double power;
 
@@ -195,29 +195,6 @@ public class DriveTrain {
         turn = Math.max(-0.5, Math.min(0.5, turn));
 
         return turn;
-    }
-
-    // Return average of array.
-    public static double smoothedAverage (double[] values, double newValue){
-
-        if (values.length == 1) {
-            values[0] = newValue;
-            return newValue;
-        }
-
-        double tempAverage = newValue;
-
-        // Shift values and start summing for average calculation, except for the last one.
-        for (int i = 0; i < values.length - 1; i++){
-            // Shift values over one position,
-            values[i] = values[i+1];
-            tempAverage += values[i];
-        }
-
-        // Add newValue into array.
-        values[values.length - 1] = newValue;
-
-        return (tempAverage / values.length);
     }
 
     public double getThrottle(){
