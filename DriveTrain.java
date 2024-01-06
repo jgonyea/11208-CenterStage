@@ -25,6 +25,9 @@ public class DriveTrain {
     private DistanceSensor distanceL;
     private DistanceSensor distanceR;
     private DistanceUnit distanceUnit;
+    private ArraySmoother averagerL;
+    private ArraySmoother averagerR;
+    private static final int SMOOTHING_LENGTH = 100;
 
 
     // Todo: fix these fake values.
@@ -61,6 +64,8 @@ public class DriveTrain {
         this.distanceL = distanceL;
         this.distanceR = distanceR;
         this.distanceUnit = distanceUnit;
+        this.averagerL = new ArraySmoother(SMOOTHING_LENGTH);
+        this.averagerR = new ArraySmoother(SMOOTHING_LENGTH);
 
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -83,6 +88,8 @@ public class DriveTrain {
 
         double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
+        distanceLeft = averagerL.smooth(distanceLeft);
+        distanceRight = averagerR.smooth(distanceRight);
         double theta;
         double power;
 
