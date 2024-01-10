@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teamcode11208;
 
 public class ArraySmoother {
     private double[] values;
+    private double lastReturnedValue;
     public ArraySmoother(int length) {
         this.values = new double[length];
     }
@@ -25,6 +26,11 @@ public class ArraySmoother {
         // Add newValue into array.
         values[values.length - 1] = value;
 
-        return (tempAverage / values.length);
+        lastReturnedValue = (tempAverage / values.length);
+        return lastReturnedValue;
+    }
+
+    public double getSmoothedValue() {
+        return lastReturnedValue;
     }
 }
