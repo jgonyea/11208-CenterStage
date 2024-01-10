@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_RPM;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.rpmToVelocity;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.MAX_RPM;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.RUN_USING_ENCODER;
+import static org.firstinspires.ftc.teamcode.drive.CenterStageConstants.rpmToVelocity;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -35,8 +35,8 @@ import java.util.List;
 @Config
 @Autonomous(group = "drive")
 public class AutomaticFeedforwardTuner extends LinearOpMode {
-    public static double MAX_POWER = 0.7;
-    public static double DISTANCE = 100; // in
+    public static double MAX_POWER = 1;
+    public static double DISTANCE = 200; // in
 
     @Override
     public void runOpMode() throws InterruptedException {
