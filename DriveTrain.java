@@ -25,13 +25,16 @@ public class DriveTrain {
     private DistanceSensor distanceL;
     private DistanceSensor distanceR;
     private DistanceUnit distanceUnit;
+    private ArraySmoother averagerL;
+    private ArraySmoother averagerR;
+    private static final int SMOOTHING_LENGTH = 5;
 
 
     // Todo: fix these fake values.
     // Optimal distance for robot to be from scoring board.
     private double OPTIMAL_DIST = 70;
 
-    // Minimum difference in distance sensors to each other for auto-correction to engage.
+    // Minimum difference in distance sensors for auto-correction to engage.
     private double MINIMUM_DIST = 5;
 
     // Difference between distance values that should set turn to 100%.
@@ -40,14 +43,11 @@ public class DriveTrain {
     // Distance from OPTIMAL_DIST that should make motors run at 100% backwards.
     private double MAX_DRIVE_DIFFERENCE = 500;
 
-    // Scales approach speed.
-    private double APPROACH_POWER_SCALE = 0.25;
+    // Minimum speed for align and approach.
+    private double MINIMUM_POWER = 0.3;
 
     private boolean isDownPressed;
     private boolean isUpPressed;
-    private static final double gearThree = 1;
-    private static final double gearTwo = .5;
-    private static final double gearOne = .25;
     private int gear = 3;
 
     // Configure drivetrain motors.
@@ -61,6 +61,8 @@ public class DriveTrain {
         this.distanceL = distanceL;
         this.distanceR = distanceR;
         this.distanceUnit = distanceUnit;
+        this.averagerL = new ArraySmoother(SMOOTHING_LENGTH);
+        this.averagerR = new ArraySmoother(SMOOTHING_LENGTH);
 
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -83,6 +85,8 @@ public class DriveTrain {
 
         double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
+        distanceLeft = averagerL.smooth(distanceLeft);
+        distanceRight = averagerR.smooth(distanceRight);
         double theta;
         double power;
 
@@ -98,16 +102,24 @@ public class DriveTrain {
 
         // Automate approaching the scoring board.
         if (gamepad.right_bumper) {
-            // Locks turning.
-            x = 0.0;
-            turn = 0.0;
-
             // Approach board until OPTIMAL_DIST.
-            if (distanceLeft < OPTIMAL_DIST || distanceRight < OPTIMAL_DIST){
-                y = 0.0;
-            } else {
-                double difference = ((distanceLeft + distanceRight) / 2) - OPTIMAL_DIST;
-                y = Math.max(0.1, Math.min(1, difference / MAX_DRIVE_DIFFERENCE));
+            double avgDist = (distanceLeft + distanceRight) / 2;
+            if (Math.abs(avgDist - OPTIMAL_DIST) > MINIMUM_DIST) {
+                y = (OPTIMAL_DIST - avgDist) / MAX_DRIVE_DIFFERENCE;
+
+                // Robot is too far. Back up.
+                if (y < 0) {
+                    y = Math.min(y, -MINIMUM_POWER);
+                }
+                // Robot is too close. Move away.
+                if (y > 0) {
+                    y = Math.max(y, MINIMUM_POWER);
+                }
+
+                y = Math.max(-1, Math.min(1, y));
+
+                // TODO: why do we need this?
+                y = -y;
             }
         }
 
@@ -185,7 +197,15 @@ public class DriveTrain {
         double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
 
         // Limit turn.
-        turn = Math.max(-0.5, Math.min(0.5, turn));
+        turn = Math.max(-1, Math.min(1, turn));
+
+
+        if (turn > 0) {
+            turn = Math.min(turn, MINIMUM_POWER);
+        }
+        if (turn < 0) {
+            turn = Math.max(turn, -MINIMUM_POWER);
+        }
 
         return turn;
     }
@@ -193,4 +213,12 @@ public class DriveTrain {
     public double getThrottle(){
         return this.throttle;
     }
+
+    public double getSmoothDistL() {
+        return averagerL.getSmoothedValue();
+    }
+    public double getSmoothDistR() {
+        return averagerR.getSmoothedValue();
+    }
+
 }
