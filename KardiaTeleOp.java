@@ -102,6 +102,6 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("distR", distR.getDistance(distUnit));
         telemetry.addData("SmoothL: ", drivetrain.getSmoothDistL());
         telemetry.addData("SmoothR: ", drivetrain.getSmoothDistR());
-        telemetry.addData("Throttle Gear: ", drivetrain.getThrottle());
+        telemetry.addData("Throttle Gear: ", drivetrain.getGear());
     }
 }

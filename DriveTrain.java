@@ -27,24 +27,22 @@ public class DriveTrain {
     private DistanceUnit distanceUnit;
     private ArraySmoother averagerL;
     private ArraySmoother averagerR;
-    private static final int SMOOTHING_LENGTH = 5;
+    private static final int SMOOTHING_LENGTH = 3;
 
-
-    // Todo: fix these fake values.
     // Optimal distance for robot to be from scoring board.
-    private double OPTIMAL_DIST = 70;
+    private final double OPTIMAL_DIST = 70;
 
     // Minimum difference in distance sensors for auto-correction to engage.
-    private double MINIMUM_DIST = 5;
+    private final double MINIMUM_DIST = 10;
 
     // Difference between distance values that should set turn to 100%.
-    private double MAX_TURN_DIFFERENCE = 200;
+    private final double MAX_TURN_DIFFERENCE = 200;
 
     // Distance from OPTIMAL_DIST that should make motors run at 100% backwards.
-    private double MAX_DRIVE_DIFFERENCE = 500;
+    private final double MAX_DRIVE_DIFFERENCE = 500;
 
     // Minimum speed for align and approach.
-    private double MINIMUM_POWER = 0.3;
+    private final double MINIMUM_POWER = 0.3;
 
     private boolean isDownPressed;
     private boolean isUpPressed;
@@ -85,8 +83,8 @@ public class DriveTrain {
 
         double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
-        distanceLeft = averagerL.smooth(distanceLeft);
-        distanceRight = averagerR.smooth(distanceRight);
+        //distanceLeft = averagerL.smooth(distanceLeft);
+        //distanceRight = averagerR.smooth(distanceRight);
         double theta;
         double power;
 
@@ -111,21 +109,21 @@ public class DriveTrain {
                 if (y < 0) {
                     y = Math.min(y, -MINIMUM_POWER);
                 }
+
                 // Robot is too close. Move away.
-                if (y > 0) {
-                    y = Math.max(y, MINIMUM_POWER);
-                }
+                //if (y > 0) {
+                //    y = Math.max(y, MINIMUM_POWER);
+                //
 
-                y = Math.max(-1, Math.min(1, y));
+                // Restrict y values between -1 and 1.
+                y = -Math.max(-1, Math.min(1, y));
 
-                // TODO: why do we need this?
-                y = -y;
             }
         }
 
         // Calculate values based on math code from https://www.youtube.com/@gavinford8924
         theta = Math.atan2(y, x);
-        power = Math.hypot(x,y);
+        power = Math.hypot(x, y);
 
         // Calculate initial power results to motors.
         double sin = Math.sin(theta - Math.PI/4);
@@ -142,23 +140,23 @@ public class DriveTrain {
         double powerRearRight = power * (cos / max) - turn;
 
         //create "gears" for the drive train
-        if (gamepad.dpad_up && !isUpPressed) {
+        if (gamepad.right_trigger > 0.5 && !isUpPressed) {
             isUpPressed = true;
             if (gear < 3) {
                 gear++;
             }
         }
-        if (!gamepad.dpad_up) {
+        if (gamepad.right_trigger < 0.5) {
             isUpPressed = false;
         }
 
-        if (gamepad.dpad_down && !isDownPressed) {
+        if (gamepad.left_trigger > 0.5 && !isDownPressed) {
             isDownPressed = true;
             if (gear > 1) {
                 gear--;
             }
         }
-        if (!gamepad.dpad_down) {
+        if (gamepad.left_trigger < 0.5) {
             isDownPressed = false;
         }
 
@@ -186,7 +184,15 @@ public class DriveTrain {
 
     }
 
-    // Scales turning values to square robot based on distance sensor input.
+    /**
+     * Scales turning values to square robot based on distance sensor input.
+     * @param distanceLeft
+     *  Left distance.
+     * @param distanceRight
+     *  Right distance.
+     * @return double
+     *  Automated turn value.
+     */
     private double calculateTurn(double distanceLeft, double distanceRight){
         if (Math.abs(distanceLeft - distanceRight) < MINIMUM_DIST) {
             return 0;
@@ -210,13 +216,29 @@ public class DriveTrain {
         return turn;
     }
 
-    public double getThrottle(){
-        return this.throttle;
+    /**
+     * Getter for robot's current gear.
+     * @return int gear
+     *  Current gear
+     */
+    public double getGear(){
+        return this.gear;
     }
 
+    /**
+     * Getter for current smoothed value of left distance sensor.
+     * @return double
+     *  Smoothed left distance sensor values.
+     */
     public double getSmoothDistL() {
         return averagerL.getSmoothedValue();
     }
+
+    /**
+     * Getter for current smoothed value of right distance sensor.
+     * @return double
+     *  Smoothed right distance sensor values.
+     */
     public double getSmoothDistR() {
         return averagerR.getSmoothedValue();
     }
