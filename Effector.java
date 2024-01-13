@@ -30,9 +30,9 @@ public class Effector {
     private final static double ARM_STAGED_INTAKE_POSITION = 0.410;
     private final static double ARM_STAGED_LIFT_POSITION = 0.450;
 
-    private final static double HAND_DRIVING_POSITION = 0.7;
+    private final static double HAND_DRIVING_POSITION = 0.72;
     private final static double HAND_INTAKE_POSITION = 0.40;
-    private final static double HAND_SCORING_POSITION = 0.278;
+    private final static double HAND_SCORING_POSITION = 0.258;
 
     private final static double PINCERL_CLOSED_POSITION = 0.43;
     private final static double PINCERR_CLOSED_POSITION = 0.52;
@@ -150,13 +150,13 @@ public class Effector {
                 handActuator.setPosition(HAND_DRIVING_POSITION);
                 if (timer.seconds() > STAGED_LIFT_TIME){
                     wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                    if (gp.a && !this.is_a_pressed) {
+                        this.is_a_pressed = true;
+                        currentState = EffectorState.DRIVING;
+                    }
                 }
 
                 // Wait for 2nd press to go down.
-                if (gp.a && !this.is_a_pressed) {
-                    this.is_a_pressed = true;
-                    currentState = EffectorState.DRIVING;
-                }
                 if (!gp.a) {
                     this.is_a_pressed = false;
                 }
