@@ -93,6 +93,11 @@ public class DriveTrain {
         double y = gamepad.left_stick_y;
         double turn = -gamepad.right_stick_x;
 
+        /**
+         * Add dpad controls here.
+         */
+        
+
         // Automate turning for squaring up to scoring board.
         if (gamepad.left_bumper) {
             turn = calculateTurn(distanceLeft, distanceRight);
