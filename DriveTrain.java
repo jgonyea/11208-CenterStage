@@ -44,6 +44,9 @@ public class DriveTrain {
     // Minimum speed for align and approach.
     private final double MINIMUM_POWER = 0.3;
 
+    //Dpad powerlevel for Dpad strafe and Back + forward.
+    private final double DPAD_POWER = 0.6;
+
     private boolean isDownPressed;
     private boolean isUpPressed;
     private int gear = 3;
@@ -96,6 +99,33 @@ public class DriveTrain {
         /**
          * Add dpad controls here.
          */
+        // Get dpad state as one integer
+        int dpadState = 0;
+        if (gamepad.dpad_up)
+            dpadState |= 0b0001;
+        if (gamepad.dpad_left)
+            dpadState |= 0b0010;
+        if (gamepad.dpad_down)
+            dpadState |= 0b0100;
+        if (gamepad.dpad_right)
+            dpadState |= 0b1000;
+        
+        if (dpadState == 0b0001) {
+            x = 0.0;
+            y = -DPAD_POWER;
+        }
+        if (dpadState == 0b0010) {
+            x = -DPAD_POWER;
+            y = 0.0;
+        }
+        if (dpadState == 0b0100) {
+            x = 0.0;
+            y = DPAD_POWER;
+        }
+        if (dpadState == 0b1000) {
+            x = DPAD_POWER;
+            y = 0.0;
+        }
         
 
         // Automate turning for squaring up to scoring board.
