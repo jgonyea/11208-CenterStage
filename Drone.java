@@ -13,7 +13,7 @@ public class Drone {
     private ElapsedTime timer = new ElapsedTime();
 
     private double positionLoaded = 0;
-    private double positionFired = 1;
+    private double positionFired = 0.3767;
     private boolean launching = false;
 
     // Configures launcher servo.
