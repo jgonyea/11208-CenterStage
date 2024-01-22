@@ -44,7 +44,7 @@ public class DriveTrain {
     // Minimum speed for align and approach.
     private final double MINIMUM_POWER = 0.3;
 
-    //Dpad powerlevel for Dpad strafe and Back + forward.
+    // Power level set by dpad when overriding left stick.
     private final double DPAD_POWER = 0.6;
 
     private boolean isDownPressed;
@@ -96,9 +96,6 @@ public class DriveTrain {
         double y = gamepad.left_stick_y;
         double turn = -gamepad.right_stick_x;
 
-        /**
-         * Add dpad controls here.
-         */
         // Get dpad state as one integer
         int dpadState = 0;
         if (gamepad.dpad_up)
@@ -110,6 +107,7 @@ public class DriveTrain {
         if (gamepad.dpad_right)
             dpadState |= 0b1000;
         
+        // Override left stick if dpad pressed
         if (dpadState == 0b0001) {
             x = 0.0;
             y = -DPAD_POWER;
@@ -126,7 +124,6 @@ public class DriveTrain {
             x = DPAD_POWER;
             y = 0.0;
         }
-        
 
         // Automate turning for squaring up to scoring board.
         if (gamepad.left_bumper) {
