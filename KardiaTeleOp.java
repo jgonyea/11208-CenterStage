@@ -92,7 +92,8 @@ public class KardiaTeleOp extends OpMode {
         drivetrain.moveRobot(gamepad1);
         drone.launch(gamepad1, gamepad2);
         lift.moveLift(gamepad2);
-        effector.moveEffector(gamepad2);
+        effector.updateFromGamepad(gamepad2);
+        effector.moveEffector();
 
         // Debug.  Todo: Remove before competition.
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
