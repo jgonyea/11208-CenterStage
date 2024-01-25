@@ -41,7 +41,7 @@ public class KardiaAutonomous extends LinearOpMode {
     // todo: add camera and vision processors.
 
     // Increment as each autonoumous step proceeds.
-    private int step = 2;
+    private int step = 0;
 
 
 
@@ -97,38 +97,24 @@ public class KardiaAutonomous extends LinearOpMode {
 
             // Grab pixels from starting position.
             if (step == 0) {
-                //effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 // todo: set pincer to closed
 
-                //sleep(Effector.STAGED_INTAKE_TIME);
-                //effector.setDesiredState(Effector.EffectorState.INTAKE);
+                sleep(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.INTAKE);
                 // todo: set pincers to open
 
-                //sleep(Effector.STAGED_INTAKE_TIME * 2);
+                sleep(Effector.STAGED_INTAKE_TIME * 2);
 
-                //effector.setDesiredState(Effector.EffectorState.DRIVING);
-
-                step++;
-            }
-
-            // Locate team prop and maneuver to proper location.
-            if (step == 1) { // && effector.getCurrentState() == Effector.EffectorState.DRIVING) {
+                effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
             }
 
-
-            if (step == 2) {
-
-                step++;
-
-                telemetry.addData("pre-async", "hello");
-                telemetry.update();
+            // Locate team prop using distance sensor sweep and maneuver to proper location.
+            if (step == 1) {
                 robot.followTrajectory(begin);
                 robot.turnAsync(Math.toRadians(-135));
-
-                telemetry.addData("post async", "hi");
-                telemetry.update();
                 while (robot.isBusy()) {
                     robot.update();
                     Pose2d pose = robot.getPoseEstimate();
@@ -139,24 +125,29 @@ public class KardiaAutonomous extends LinearOpMode {
                     }
                 }
 
-                int propPosition = (int) Math.floor(minDistanceRHeading) - 3;
-                telemetry.addData("Detected team prop", propPosition);
+                // Converts teamPropPosition detected radian angle to integer.
+                int teamPropPosition = (int) Math.floor(minDistanceRHeading);
+                telemetry.addData("Detected team prop", teamPropPosition);
                 telemetry.update();
 
+                Pose2d spikeLeftPose = new Pose2d(8.75, -31.63, 3.124);
+                Pose2d spikeCenterPose = new Pose2d(11.69, -32.47, 1.54);
+                Pose2d spikeRightPose = new Pose2d(14.20, -32.60, 0);
                 Pose2d currentPose = robot.getPoseEstimate();
+
                 Trajectory spikeLeft = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(new Pose2d(8.75, -31.63, 3.124))
+                        .lineToLinearHeading(spikeLeftPose)
                         .build();
                 Trajectory spikeCenter = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(new Pose2d(11.69, -32.47, 1.54))
+                        .lineToLinearHeading(spikeCenterPose)
                         .build();
                 Trajectory spikeRight = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(new Pose2d(14.20, -32.60, 0))
+                        .lineToLinearHeading(spikeRightPose)
                         .build();
                 Trajectory clearProp;
 
-                switch (propPosition) {
-                    case 2:
+                switch (teamPropPosition) {
+                    case 5: // Left Spike
                         robot.followTrajectory(spikeLeft);
                         clearProp = robot.trajectoryBuilder(spikeLeft.end())
                                 .forward(10).build();
@@ -165,7 +156,7 @@ public class KardiaAutonomous extends LinearOpMode {
                                 .lineToLinearHeading(spikeLeft.end()).build();
                         robot.followTrajectory(clearProp);
                         break;
-                    case 1:
+                    case 4: // Center Spike
                         robot.followTrajectory(spikeCenter);
                         clearProp = robot.trajectoryBuilder(spikeCenter.end())
                                 .forward(10).build();
@@ -174,7 +165,7 @@ public class KardiaAutonomous extends LinearOpMode {
                                 .lineToLinearHeading(spikeCenter.end()).build();
                         robot.followTrajectory(clearProp);
                         break;
-                    case 0:
+                    case 3: // Right Spike
                         robot.followTrajectory(spikeRight);
                         clearProp = robot.trajectoryBuilder(spikeRight.end())
                                 .forward(10).build();
@@ -182,18 +173,22 @@ public class KardiaAutonomous extends LinearOpMode {
                     default:
                         break;
                 }
+
+                step++;
             }
 
-
-
-
-            //Trajectory traj = robot.trajectoryBuilder(new Pose2d())
-            //        .splineTo(new Vector2d(30, 30), 0)
-            //        .build();
-            //
-            //robot.followTrajectory(traj);
             // Place left (purple)
-            // Locate April tag for global positioning reorientation?
+            if (step == 2){
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                sleep(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.INTAKE);
+                // todo: set left pincer to closed
+                sleep(Effector.STAGED_INTAKE_TIME * 2);
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                sleep(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.DRIVING);
+            }
+
             // Drive to score board
             // Score right (yellow)
             // Drive to parking spot
