@@ -15,8 +15,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 
-@Autonomous(name="KardiaAutonomous")
+@Autonomous(name="RED-KardiaAutonomous")
 public class KardiaAutonomous extends LinearOpMode {
+
+    CenterStageDrive robot = new CenterStageDrive(hardwareMap);
 
     ElapsedTime autonomousModeTimer = new ElapsedTime();
     ElapsedTime stepTimer = new ElapsedTime();
@@ -33,16 +35,12 @@ public class KardiaAutonomous extends LinearOpMode {
     DistanceSensor distR;
     DistanceUnit distUnit;
 
-    private double minDistanceL = 10000;
     private double minDistanceLHeading;
     private double minDistanceR = 10000;
     private double minDistanceRHeading;
 
-    // todo: add camera and vision processors.
-
-    // Increment as each autonoumous step proceeds.
+    // Increment as each autonomous step proceeds.
     private int step = 0;
-
 
 
     @Override
@@ -50,47 +48,29 @@ public class KardiaAutonomous extends LinearOpMode {
         // Initialize and configure here.
         CenterStageDrive robot = new CenterStageDrive(hardwareMap);
 
-        // Effector hardware mapping.
-        armRotatorLeft = hardwareMap.get(Servo.class, "armL");
-        armRotatorRight = hardwareMap.get(Servo.class, "armR");
-        handActuator = hardwareMap.get(Servo.class, "hand");
-        pincerLeft = hardwareMap.get(Servo.class, "pincerL");
-        pincerRight = hardwareMap.get(Servo.class, "pincerR");
-        wristRotator = hardwareMap.get(Servo.class, "wrist");
+        // Positions/ poses.
+        Pose2d startPose = new Pose2d(15, -63, 1.57);
+        Pose2d scanningPose = new Pose2d(15, -42.34, 5.6);
+        Pose2d spikeLeftPose = new Pose2d(8.75, -31.63, 3.124);
+        Pose2d spikeCenterPose = new Pose2d(11.69, -32.47, 1.57);
+        Pose2d spikeRightPose = new Pose2d(14.20, -32.60, 0);
+        Pose2d scoreCenter = new Pose2d(50, -36, 180);
+        Pose2d parking = new Pose2d(50, -60, 180); // todo: fix this pose.
+        Pose2d spikePose = null;
+        Pose2d scorePose = null;
+        double scoreOffset = 6.0;
 
-        // Todo: write this comment
-        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
-        telemetry.addData("End Effector: ", "Initialized");
-        telemetry.update();
 
-        // Distance Sensors
-        distL = hardwareMap.get(DistanceSensor.class, "distL");
-        distR = hardwareMap.get(DistanceSensor.class, "distR");
-        distUnit = DistanceUnit.CM;
-        robot.setPoseEstimate(new Pose2d(15, -63, Math.toRadians(90)));
-            while (!isStarted()) {
-                robot.update();
-                telemetry.addData("inside loop", "hello");
-
-                Pose2d pose = robot.getPoseEstimate();
-                telemetry.addData("Current Pose x", pose.getX());
-                telemetry.addData("Current Pose y", pose.getY());
-                telemetry.addData("Current Pose h", pose.getHeading());
-
-                telemetry.addData("min L", minDistanceL);
-                telemetry.addData("min R", minDistanceR);
-                telemetry.addData("min L H", minDistanceLHeading);
-                telemetry.addData("min R H", minDistanceRHeading);
-                telemetry.update();
-            }
-
-        // Pause and wait for driver to press Start.
-        autonomousModeTimer.reset();
-
-        Trajectory begin = robot.trajectoryBuilder(robot.getPoseEstimate(), Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d(15, -42.34, 5.6), Math.toRadians(90))
+        // Build trajectory to scanning position.
+        Trajectory beginningToScanning = robot.trajectoryBuilder(robot.getPoseEstimate(), Math.toRadians(90))
+                .splineToLinearHeading(scanningPose, Math.toRadians(90))
                 .build();
 
+        // Configure robot.
+        autoInit(startPose);
+
+
+        // Autonomous loop.
         while (opModeIsActive()) {
 
             // todo: fill in missing autonomous programming.
@@ -113,7 +93,7 @@ public class KardiaAutonomous extends LinearOpMode {
 
             // Locate team prop using distance sensor sweep and maneuver to proper location.
             if (step == 1) {
-                robot.followTrajectory(begin);
+                robot.followTrajectory(beginningToScanning);
                 robot.turnAsync(Math.toRadians(-135));
                 while (robot.isBusy()) {
                     robot.update();
@@ -130,49 +110,76 @@ public class KardiaAutonomous extends LinearOpMode {
                 telemetry.addData("Detected team prop", teamPropPosition);
                 telemetry.update();
 
-                Pose2d spikeLeftPose = new Pose2d(8.75, -31.63, 3.124);
-                Pose2d spikeCenterPose = new Pose2d(11.69, -32.47, 1.54);
-                Pose2d spikeRightPose = new Pose2d(14.20, -32.60, 0);
                 Pose2d currentPose = robot.getPoseEstimate();
 
-                Trajectory spikeLeft = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(spikeLeftPose)
-                        .build();
-                Trajectory spikeCenter = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(spikeCenterPose)
-                        .build();
-                Trajectory spikeRight = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(spikeRightPose)
-                        .build();
-                Trajectory clearProp;
-
-                switch (teamPropPosition) {
-                    case 5: // Left Spike
-                        robot.followTrajectory(spikeLeft);
-                        clearProp = robot.trajectoryBuilder(spikeLeft.end())
-                                .forward(10).build();
-                        robot.followTrajectory(clearProp);
-                        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
-                                .lineToLinearHeading(spikeLeft.end()).build();
-                        robot.followTrajectory(clearProp);
+                // Set both spike and scoring positions.
+                switch (teamPropPosition){
+                    case 5:
+                        spikePose = spikeLeftPose;
+                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset);
                         break;
-                    case 4: // Center Spike
-                        robot.followTrajectory(spikeCenter);
-                        clearProp = robot.trajectoryBuilder(spikeCenter.end())
-                                .forward(10).build();
-                        robot.followTrajectory(clearProp);
-                        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
-                                .lineToLinearHeading(spikeCenter.end()).build();
-                        robot.followTrajectory(clearProp);
+                    case 4:
+                        spikePose = spikeCenterPose;
+                        scorePose = scoreCenter;
                         break;
-                    case 3: // Right Spike
-                        robot.followTrajectory(spikeRight);
-                        clearProp = robot.trajectoryBuilder(spikeRight.end())
-                                .forward(10).build();
+                    case 3:
+                        spikePose = spikeRightPose;
+                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset);
                         break;
                     default:
-                        break;
+                        spikePose = spikeCenterPose;
+                        scorePose = scoreCenter;
                 }
+                // Will move to center of spike and push team prop out of the way.
+                // todo: Check if this can work by chaining?  If so, this is much easier.
+                Trajectory toSpike = robot.trajectoryBuilder(currentPose)
+                        .lineToLinearHeading(spikePose)
+                        .forward(8)
+                        .back(8)
+                        .build();
+                robot.followTrajectory(toSpike);
+
+
+                //Trajectory spikeLeft = robot.trajectoryBuilder(currentPose)
+                //        .lineToLinearHeading(spikeLeftPose)
+                //        .build();
+                //Trajectory spikeCenter = robot.trajectoryBuilder(currentPose)
+                //        .lineToLinearHeading(spikeCenterPose)
+                //        .build();
+                //Trajectory spikeRight = robot.trajectoryBuilder(currentPose)
+                //        .lineToLinearHeading(spikeRightPose)
+                //        .build();
+
+                //Trajectory clearProp;
+
+                //switch (teamPropPosition) {
+                //    case 5: // Left Spike
+                //        robot.followTrajectory(spikeLeft);
+                //        clearProp = robot.trajectoryBuilder(spikeLeft.end())
+                //                .forward(10).build();
+
+                //        robot.followTrajectory(clearProp);
+
+                //        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
+                //                .lineToLinearHeading(spikeLeft.end()).build();
+                //        robot.followTrajectory(clearProp);
+                //        break;
+                //    case 4: // Center Spike
+                //        robot.followTrajectory(spikeCenter);
+                //        clearProp = robot.trajectoryBuilder(spikeCenter.end())
+                //                .forward(10).build();
+                //        robot.followTrajectory(clearProp);
+                //        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
+                //                .lineToLinearHeading(spikeCenter.end()).build();
+                //        robot.followTrajectory(clearProp);
+                //        break;
+                //    case 3: // Right Spike
+                //        robot.followTrajectory(spikeRight);
+                //        // Due to how the robot follows to this point, moving the prop isn't necessary.
+                //        break;
+                //    default:
+                //        break;
+                //}
 
                 step++;
             }
@@ -190,11 +197,76 @@ public class KardiaAutonomous extends LinearOpMode {
             }
 
             // Drive to score board
-            // Score right (yellow)
-            // Drive to parking spot
+            if (step == 3){
+                Pose2d currentPose = robot.getPoseEstimate();
+                Trajectory toScoreBoard = robot.trajectoryBuilder(currentPose)
+                        .lineToLinearHeading(scorePose)
+                        .build();
 
-            // Run modes of robot.
-            //effector.run();
+                robot.followTrajectoryAsync(toScoreBoard);
+                stepTimer.reset();
+                while (robot.isBusy() && stepTimer.seconds() < 10) {
+                    // todo: Avoid collisions as best as we can.  Does this not move the robot since we're not updating the robot?
+                    if (distL.getDistance(distUnit) < 10 && distR.getDistance(distUnit) < 10) {
+                        continue;
+                    }
+                    robot.update();
+                }
+
+
+                // Todo: we might not be where we expect.  Can we update without finishing the previous path?
+
+
+                step++;
+            }
+
+            // Score right (yellow) when path is clear
+            if (step == 5 && distL.getDistance(distUnit) > 10 && distR.getDistance(distUnit) > 10){
+                // todo: score yellow
+            }
+
+            // Drive to parking spot
+                // todo: drive to parking zone
+                // todo: Where is the actual parking?  Can we just strafe away from scoreboard?
+
         }
+    }
+
+    private void autoInit(Pose2d startPose){
+
+        // Effector hardware mapping.
+        armRotatorLeft = hardwareMap.get(Servo.class, "armL");
+        armRotatorRight = hardwareMap.get(Servo.class, "armR");
+        handActuator = hardwareMap.get(Servo.class, "hand");
+        pincerLeft = hardwareMap.get(Servo.class, "pincerL");
+        pincerRight = hardwareMap.get(Servo.class, "pincerR");
+        wristRotator = hardwareMap.get(Servo.class, "wrist");
+
+        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
+        telemetry.addData("End Effector: ", "Initialized");
+        telemetry.update();
+
+        // Distance Sensors
+        distL = hardwareMap.get(DistanceSensor.class, "distL");
+        distR = hardwareMap.get(DistanceSensor.class, "distR");
+        distUnit = DistanceUnit.CM;
+        robot.setPoseEstimate(startPose);
+        while (!isStarted()) {
+            robot.update();
+            telemetry.addData("inside loop", "hello");
+
+            Pose2d pose = robot.getPoseEstimate();
+            telemetry.addData("Current Pose x", pose.getX());
+            telemetry.addData("Current Pose y", pose.getY());
+            telemetry.addData("Current Pose h", pose.getHeading());
+
+            telemetry.addData("min R", minDistanceR);
+            telemetry.addData("min R H", minDistanceRHeading);
+            telemetry.update();
+        }
+
+        // Pause and wait for driver to press Start.
+        autonomousModeTimer.reset();
+
     }
 }
