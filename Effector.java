@@ -1,5 +1,5 @@
 /**
- * Controls the end-effector based on input from a gamepad.
+ * Controls the positioning of end-effector and pincers.
  */
 package org.firstinspires.ftc.teamcode;
 
@@ -15,11 +15,11 @@ public class Effector {
     private Servo pincerRight;
     private Servo wristRotator;
     public enum EffectorState {
+        SCORING,
+        STAGED_LIFT,
         DRIVING,
         STAGED_INTAKE,
-        INTAKE,
-        STAGED_LIFT,
-        SCORING
+        INTAKE
     }
 
     // Values based on empirical testing.
@@ -42,13 +42,13 @@ public class Effector {
 
     // Timings
     private final ElapsedTime timer = new ElapsedTime();
-    private final static double STAGED_INTAKE_TIME = 0.3;
-    private final static double STAGED_LIFT_TIME = 1.0;
+    public final static int STAGED_INTAKE_TIME = 300;
+    public final static double STAGED_LIFT_TIME = 1.0;
 
-    private EffectorState currentState;
+    private EffectorState currentState = EffectorState.DRIVING;
+    private EffectorState desiredState = EffectorState.DRIVING;
     private boolean is_a_pressed = false;
     private boolean is_y_pressed = false;
-    private boolean movingTowardsDrivingState = false;
 
     // Configure effector Servos.
     public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handActuator, Servo pincerLeft, Servo pincerRight) {
@@ -68,28 +68,39 @@ public class Effector {
         pincerLeft.setPosition(PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET);
         pincerRight.setPosition(PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET);
 
-        armRotatorLeft.setPosition(ARM_STAGED_LIFT_POSITION);
-        armRotatorRight.setPosition(ARM_STAGED_LIFT_POSITION);
-        handActuator.setPosition(HAND_DRIVING_POSITION);
-        wristRotator.setPosition(WRIST_INTAKE_POSITION);
-
-        currentState = EffectorState.DRIVING;
+        // Move effector to initialized state.
+        moveEffector(EffectorState.DRIVING);
     }
 
-    // Update current state using gamepad input.
-    public void updateFromGamepad(Gamepad gp) {
+    /**
+     * Callable method to move effector.
+     */
+    public void run(){
+        // Check if we need to move effector.
+        if (desiredState != currentState){
+            moveEffector(nextState());
+        }
+        // Check if we need to move pincers
+
+    }
+
+    /**
+     * Update current state using gamepad input.
+     * @param gp Gamepad input
+     */
+    public void manualUpdate(Gamepad gp) {
         switch (currentState) {
             case DRIVING:
                 // Monitor for arm rotation buttons A & Y.
                 if (gp.a && !gp.y && !is_a_pressed){
-                    currentState = EffectorState.STAGED_INTAKE;
+                    setDesiredState(EffectorState.STAGED_INTAKE);
                     this.is_a_pressed = true;
                     this.is_y_pressed = false;
                     timer.reset();
                     break;
                 }
                 if (gp.y && !gp.a) {
-                    currentState = EffectorState.STAGED_LIFT;
+                    setDesiredState(EffectorState.STAGED_LIFT);
                     this.is_a_pressed = false;
                     this.is_y_pressed = true;
                     timer.reset();
@@ -101,15 +112,16 @@ public class Effector {
                 break;
 
             case STAGED_INTAKE:
+                // todo: Maybe we don't want this to drop pixels?
                 if (is_a_pressed) {
                     pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
                     pincerRight.setPosition(PINCERR_CLOSED_POSITION);
                 }
-                if (timer.seconds() > STAGED_INTAKE_TIME) {
+                if (timer.milliseconds() > STAGED_INTAKE_TIME) {
                     if (is_a_pressed){
-                        currentState = EffectorState.INTAKE;
+                        setDesiredState(EffectorState.INTAKE);
                     } else {
-                        currentState = EffectorState.DRIVING;
+                        setDesiredState(EffectorState.DRIVING);
                     }
                     break;
                 }
@@ -119,7 +131,7 @@ public class Effector {
                 movePincers(gp, pincerLeft, pincerRight);
                 if (!gp.a) {
                     this.is_a_pressed = false;
-                    currentState = EffectorState.STAGED_INTAKE;
+                    setDesiredState(EffectorState.STAGED_INTAKE);
                     timer.reset();
                     break;
                 }
@@ -132,12 +144,12 @@ public class Effector {
                     // Wait for 2nd press to go down.
                     if (gp.a && !this.is_a_pressed) {
                         this.is_a_pressed = true;
-                        currentState = EffectorState.DRIVING;
+                        setDesiredState(EffectorState.DRIVING);
                         break;
                     }
                     if (gp.y && !this.is_y_pressed) {
                         this.is_y_pressed = true;
-                        currentState = EffectorState.SCORING;
+                        setDesiredState(EffectorState.SCORING);
                         break;
                     }
                 }
@@ -154,7 +166,7 @@ public class Effector {
             case SCORING:
                 movePincers(gp, pincerLeft, pincerRight);
                 if (gp.a) {
-                    currentState = EffectorState.STAGED_LIFT;
+                    setDesiredState(EffectorState.STAGED_LIFT);
                     pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
                     pincerRight.setPosition(PINCERR_CLOSED_POSITION);
                     is_a_pressed = true;
@@ -165,48 +177,17 @@ public class Effector {
             default:
                 throw new IllegalStateException("Unexpected value: " + currentState);
         }
+
+        // Move effector.
+        run();
     }
 
-    // Update current state based on movingTowardsDrivingState.
-    public void updateWithoutGamepad() {
-        switch (currentState) {
-            case STAGED_INTAKE:
-                if (!movingTowardsDrivingState) {
-                    pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
-                    pincerRight.setPosition(PINCERR_CLOSED_POSITION);
-                }
-
-                if (timer.seconds() > STAGED_INTAKE_TIME) {
-                    if (movingTowardsDrivingState) {
-                        currentState = EffectorState.DRIVING;
-                    } else {
-                        currentState = EffectorState.INTAKE;
-                    }
-                }
-
-                break;
-
-            case INTAKE:
-                pincerLeft.setPosition(PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET);
-                pincerRight.setPosition(PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET);
-
-                break;
-
-            case STAGED_LIFT:
-                if (timer.seconds() > STAGED_LIFT_TIME) {
-                    wristRotator.setPosition(WRIST_INTAKE_POSITION);
-
-                    if (movingTowardsDrivingState) {
-                        currentState = EffectorState.DRIVING;
-                    } else {
-                        currentState = EffectorState.SCORING;
-                    }
-                }
-        }
-    }
-
-    public void moveEffector() {
-        switch (currentState) {
+    /**
+     * Moves effector to new position.
+     * @param newPosition New position.
+     */
+    private void moveEffector(EffectorState newPosition) {
+        switch (newPosition) {
             case DRIVING:
                 armRotatorLeft.setPosition(ARM_DRIVING_POSITION);
                 armRotatorRight.setPosition(ARM_DRIVING_POSITION);
@@ -242,8 +223,10 @@ public class Effector {
                 break;
 
             default:
-                throw new IllegalStateException("Unexpected value: " + currentState);
+                throw new IllegalStateException("Unexpected value: " + newPosition.name());
         }
+
+        setCurrentState(newPosition);
     }
 
     private void movePincers(Gamepad gp, Servo pincerLeft, Servo pincerRight) {
@@ -259,13 +242,69 @@ public class Effector {
         }
     }
 
-    public String getCurrentState(){
-        return currentState.name();
+    public EffectorState getCurrentState(){
+        return currentState;
     }
 
-    public void setCurrentState(EffectorState currentState, boolean movingTowardsDrivingState){
-        this.currentState = currentState;
-        this.movingTowardsDrivingState = movingTowardsDrivingState;
+    private void setCurrentState(EffectorState newState){
+        this.currentState = newState;
         timer.reset();
+    }
+
+    public EffectorState getDesiredState() {
+        return this.desiredState;
+    }
+
+    public void setDesiredState(EffectorState desiredState) {
+        this.desiredState = desiredState;
+        if (desiredState == currentState){
+            return;
+        }
+        moveEffector(nextState());
+    }
+
+    /**
+     * Calculates the next state based on current and desired positions.
+     * @return nextPosition Next position
+     */
+    private EffectorState nextState() {
+        EffectorState nextPosition = null;
+        switch (currentState){
+            case SCORING:
+                if (desiredState == EffectorState.DRIVING || desiredState == EffectorState.STAGED_LIFT){
+                    nextPosition = EffectorState.STAGED_LIFT;
+                }
+                break;
+            case STAGED_LIFT:
+                if (desiredState == EffectorState.SCORING){
+                    nextPosition = EffectorState.SCORING;
+                } else if (desiredState == EffectorState.DRIVING){
+                    nextPosition = EffectorState.DRIVING;
+                }
+                break;
+            case DRIVING:
+                if (desiredState == EffectorState.STAGED_LIFT || desiredState == EffectorState.SCORING){
+                    nextPosition = EffectorState.STAGED_LIFT;
+                } else if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.INTAKE){
+                    nextPosition = EffectorState.STAGED_INTAKE;
+                }
+                break;
+            case STAGED_INTAKE:
+                if (desiredState == EffectorState.DRIVING){
+                    nextPosition = EffectorState.DRIVING;
+                } else if (desiredState == EffectorState.INTAKE){
+                    nextPosition = EffectorState.INTAKE;
+                }
+                break;
+            case INTAKE:
+                if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.DRIVING){
+                    nextPosition = EffectorState.STAGED_INTAKE;
+                }
+                break;
+            default:
+                nextPosition = EffectorState.DRIVING;
+        }
+
+        return nextPosition;
     }
 }
