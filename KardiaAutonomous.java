@@ -153,16 +153,31 @@ public class KardiaAutonomous extends LinearOpMode {
                 Trajectory spikeRight = robot.trajectoryBuilder(currentPose)
                         .lineToLinearHeading(new Pose2d(14.20, -32.60, 0))
                         .build();
+                Trajectory clearProp;
 
                 switch (propPosition) {
                     case 2:
                         robot.followTrajectory(spikeLeft);
+                        clearProp = robot.trajectoryBuilder(spikeLeft.end())
+                                .forward(10).build();
+                        robot.followTrajectory(clearProp);
+                        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
+                                .lineToLinearHeading(spikeLeft.end()).build();
+                        robot.followTrajectory(clearProp);
                         break;
                     case 1:
                         robot.followTrajectory(spikeCenter);
+                        clearProp = robot.trajectoryBuilder(spikeCenter.end())
+                                .forward(10).build();
+                        robot.followTrajectory(clearProp);
+                        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
+                                .lineToLinearHeading(spikeCenter.end()).build();
+                        robot.followTrajectory(clearProp);
                         break;
                     case 0:
                         robot.followTrajectory(spikeRight);
+                        clearProp = robot.trajectoryBuilder(spikeRight.end())
+                                .forward(10).build();
                         break;
                     default:
                         break;
