@@ -34,7 +34,6 @@ public class KardiaTeleOp extends OpMode {
     DcMotor liftMotorLeft;
     DcMotor liftMotorRight;
 
-
     DriveTrain drivetrain = new DriveTrain();
     Drone drone = new Drone();
     Effector effector = new Effector();
@@ -84,7 +83,7 @@ public class KardiaTeleOp extends OpMode {
 
 
         telemetry.addData("Robot Initialization", "Complete");
-        telemetry.addData("Current Effector State: ", effector.getCurrentState());
+        telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
     }
 
     @Override
@@ -92,17 +91,14 @@ public class KardiaTeleOp extends OpMode {
         drivetrain.moveRobot(gamepad1);
         drone.launch(gamepad1, gamepad2);
         lift.moveLift(gamepad2);
-        effector.updateFromGamepad(gamepad2);
-        effector.moveEffector();
+        effector.manualUpdate(gamepad2);
 
         // Debug.  Todo: Remove before competition.
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
-        telemetry.addData("Current Effector State: ", effector.getCurrentState());
+        telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
         telemetry.addData("distL", distL.getDistance(distUnit));
         telemetry.addData("distR", distR.getDistance(distUnit));
-        telemetry.addData("SmoothL: ", drivetrain.getSmoothDistL());
-        telemetry.addData("SmoothR: ", drivetrain.getSmoothDistR());
         telemetry.addData("Throttle Gear: ", drivetrain.getGear());
     }
 }
