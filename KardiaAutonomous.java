@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 @Autonomous(name="RED-KardiaAutonomous")
 public class KardiaAutonomous extends LinearOpMode {
 
-    CenterStageDrive robot = new CenterStageDrive(hardwareMap);
+    CenterStageDrive robot;
 
     ElapsedTime autonomousModeTimer = new ElapsedTime();
     ElapsedTime stepTimer = new ElapsedTime();
@@ -40,13 +40,13 @@ public class KardiaAutonomous extends LinearOpMode {
     private double minDistanceRHeading;
 
     // Increment as each autonomous step proceeds.
-    private int step = 0;
+    private int step = 2;
 
 
     @Override
     public void runOpMode(){
         // Initialize and configure here.
-        CenterStageDrive robot = new CenterStageDrive(hardwareMap);
+        robot = new CenterStageDrive(hardwareMap);
 
         // Positions/ poses.
         Pose2d startPose = new Pose2d(15, -63, 1.57);
@@ -134,10 +134,16 @@ public class KardiaAutonomous extends LinearOpMode {
                 // todo: Check if this can work by chaining?  If so, this is much easier.
                 Trajectory toSpike = robot.trajectoryBuilder(currentPose)
                         .lineToLinearHeading(spikePose)
-                        .forward(8)
-                        .back(8)
                         .build();
                 robot.followTrajectory(toSpike);
+                Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
+                        .forward(10)
+                        .build();
+                Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
+                        .back(11)
+                        .build();
+                robot.followTrajectory(clearPropForward);
+                robot.followTrajectory(clearPropBackward);
 
 
                 //Trajectory spikeLeft = robot.trajectoryBuilder(currentPose)
@@ -194,10 +200,13 @@ public class KardiaAutonomous extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
+
+                // todo: don't skip 3.
+                step++;
             }
 
             // Drive to score board
-            if (step == 3){
+            if (step == 3 && scorePose != null){
                 Pose2d currentPose = robot.getPoseEstimate();
                 Trajectory toScoreBoard = robot.trajectoryBuilder(currentPose)
                         .lineToLinearHeading(scorePose)
@@ -221,13 +230,22 @@ public class KardiaAutonomous extends LinearOpMode {
             }
 
             // Score right (yellow) when path is clear
-            if (step == 5 && distL.getDistance(distUnit) > 10 && distR.getDistance(distUnit) > 10){
+            if (step == 4 && distL.getDistance(distUnit) > 10 && distR.getDistance(distUnit) > 10){
                 // todo: score yellow
+
+
+                step++;
             }
 
             // Drive to parking spot
+            if (step == 5){
                 // todo: drive to parking zone
                 // todo: Where is the actual parking?  Can we just strafe away from scoreboard?
+
+
+                step++;
+            }
+
 
         }
     }
@@ -253,13 +271,16 @@ public class KardiaAutonomous extends LinearOpMode {
         robot.setPoseEstimate(startPose);
         while (!isStarted()) {
             robot.update();
-            telemetry.addData("inside loop", "hello");
+            telemetry.addData("Initialized: ", "Status - Waiting");
 
             Pose2d pose = robot.getPoseEstimate();
-            telemetry.addData("Current Pose x", pose.getX());
-            telemetry.addData("Current Pose y", pose.getY());
-            telemetry.addData("Current Pose h", pose.getHeading());
+            telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
+            telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
+            telemetry.addData("Current Pose h (rad): ", Math.floor(pose.getHeading() * 1000) / 1000);
+            telemetry.addData("Current Pose h (deg): ", Math.floor(pose.getHeading() * 180 / Math.PI));
 
+            telemetry.addData("DistL (cm): ", distL);
+            telemetry.addData("DistR (cm): ", distR);
             telemetry.addData("min R", minDistanceR);
             telemetry.addData("min R H", minDistanceRHeading);
             telemetry.update();
