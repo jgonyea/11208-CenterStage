@@ -12,10 +12,10 @@ public class Lift {
     public DcMotor liftLeft;
     public DcMotor liftRight;
     // Number of turns to reach full lift extension.
-    private double liftTarget = 5.4;
+    private static final double MAX_TURNS = 5.4;
 
     // Encoder ticks for one full revolution.
-    public double ENCODER_TICKRATE = 751.8;
+    public static final double ENCODER_TICKRATE = 751.8;
 
 
     public void init(DcMotor liftLeft, DcMotor liftRight){
@@ -38,20 +38,25 @@ public class Lift {
         this.liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public void moveLift(Gamepad gp){
-        // Set lift target.
+    public void manualUpdate(Gamepad gp){
+        // Calculate target position
+        double targetPosition = 0;
         if (gp.right_trigger > gp.left_trigger) {
-            this.liftLeft.setTargetPosition(encodeTarget(liftTarget));
-            this.liftRight.setTargetPosition(encodeTarget(liftTarget));
+            targetPosition = MAX_TURNS;
         } else if (gp.right_trigger < gp.left_trigger){
-            this.liftLeft.setTargetPosition(0);
-            this.liftRight.setTargetPosition(0);
+            targetPosition = 0;
         }
 
-        // Set power for Lift motors
-        this.liftLeft.setPower(gp.right_trigger - gp.left_trigger);
-        this.liftRight.setPower(gp.right_trigger - gp.left_trigger);
+        // Set lift motors' target position and power
+        setLiftTarget(targetPosition, gp.right_trigger - gp.left_trigger);
+    }
 
+    public void setLiftTarget(double targetTurns, double power) {
+        this.liftLeft.setTargetPosition(encodeTarget(targetTurns));
+        this.liftRight.setTargetPosition(encodeTarget(targetTurns));
+
+        this.liftLeft.setPower(power);
+        this.liftRight.setPower(power);
     }
 
     private int encodeTarget(double turns){
