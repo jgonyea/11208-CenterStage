@@ -44,6 +44,7 @@ public class KardiaAutonomous extends LinearOpMode {
     private double minDistanceRHeading;
 
     // Increment as each autonomous step proceeds.
+    // todo: make this step = 0 for competition.
     private int step = 4;
 
 
@@ -110,9 +111,7 @@ public class KardiaAutonomous extends LinearOpMode {
                 // Converts teamPropPosition detected radian angle to integer.
                 int teamPropPosition = (int) Math.floor(minDistanceRHeading);
                 telemetry.addData("Detected team prop", teamPropPosition);
-                telemetry.update();
-
-                Pose2d currentPose = robot.getPoseEstimate();
+                telemetryUpdate();
 
                 // Set both spike and scoring positions.
                 switch (teamPropPosition){
@@ -132,62 +131,23 @@ public class KardiaAutonomous extends LinearOpMode {
                         spikePose = spikeCenterPose;
                         scorePose = scoreCenter;
                 }
+
                 // Will move to center of spike and push team prop out of the way.
-                // todo: Check if this can work by chaining?  If so, this is much easier.
+                Pose2d currentPose = robot.getPoseEstimate();
                 Trajectory toSpike = robot.trajectoryBuilder(currentPose)
                         .lineToLinearHeading(spikePose)
                         .build();
-                robot.followTrajectory(toSpike);
+
+                // todo: Check if this can work by chaining?  If so, this is much easier.
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
                         .forward(10)
                         .build();
                 Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
                         .back(11)
                         .build();
+                robot.followTrajectory(toSpike);
                 robot.followTrajectory(clearPropForward);
                 robot.followTrajectory(clearPropBackward);
-
-
-                //Trajectory spikeLeft = robot.trajectoryBuilder(currentPose)
-                //        .lineToLinearHeading(spikeLeftPose)
-                //        .build();
-                //Trajectory spikeCenter = robot.trajectoryBuilder(currentPose)
-                //        .lineToLinearHeading(spikeCenterPose)
-                //        .build();
-                //Trajectory spikeRight = robot.trajectoryBuilder(currentPose)
-                //        .lineToLinearHeading(spikeRightPose)
-                //        .build();
-
-                //Trajectory clearProp;
-
-                //switch (teamPropPosition) {
-                //    case 5: // Left Spike
-                //        robot.followTrajectory(spikeLeft);
-                //        clearProp = robot.trajectoryBuilder(spikeLeft.end())
-                //                .forward(10).build();
-
-                //        robot.followTrajectory(clearProp);
-
-                //        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
-                //                .lineToLinearHeading(spikeLeft.end()).build();
-                //        robot.followTrajectory(clearProp);
-                //        break;
-                //    case 4: // Center Spike
-                //        robot.followTrajectory(spikeCenter);
-                //        clearProp = robot.trajectoryBuilder(spikeCenter.end())
-                //                .forward(10).build();
-                //        robot.followTrajectory(clearProp);
-                //        clearProp = robot.trajectoryBuilder(robot.getPoseEstimate())
-                //                .lineToLinearHeading(spikeCenter.end()).build();
-                //        robot.followTrajectory(clearProp);
-                //        break;
-                //    case 3: // Right Spike
-                //        robot.followTrajectory(spikeRight);
-                //        // Due to how the robot follows to this point, moving the prop isn't necessary.
-                //        break;
-                //    default:
-                //        break;
-                //}
 
                 step++;
             }
@@ -242,11 +202,13 @@ public class KardiaAutonomous extends LinearOpMode {
 
             // Drive to parking spot
             if (step == 5){
+                telemetryUpdate();
                 // todo: drive to parking zone
                 // todo: Where is the actual parking?  Can we just strafe away from scoreboard?
 
-
-                step++;
+                // todo: uncomment this step++ so loop doesn't infinitely loop.
+                // Currently commented out for debugging.
+                //step++;
             }
 
 
@@ -281,20 +243,25 @@ public class KardiaAutonomous extends LinearOpMode {
             telemetry.addData("Initialized: ", "Status - Waiting");
 
             Pose2d pose = robot.getPoseEstimate();
-            telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
-            telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
-            telemetry.addData("Current Pose h (rad): ", Math.floor(pose.getHeading() * 1000) / 1000);
-            telemetry.addData("Current Pose h (deg): ", Math.floor(pose.getHeading() * 180 / Math.PI));
-
-            telemetry.addData("DistL (cm): ", distL);
-            telemetry.addData("DistR (cm): ", distR);
-            telemetry.addData("min R", minDistanceR);
-            telemetry.addData("min R H", minDistanceRHeading);
-            telemetry.update();
+            telemetryUpdate();
         }
 
         // Pause and wait for driver to press Start.
         autonomousModeTimer.reset();
 
+    }
+
+    public void telemetryUpdate(){
+        Pose2d pose = robot.getPoseEstimate();
+        telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
+        telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
+        telemetry.addData("Current Pose h (rad): ", Math.floor(pose.getHeading() * 1000) / 1000);
+        telemetry.addData("Current Pose h (deg): ", Math.floor(pose.getHeading() * 180 / Math.PI));
+
+        telemetry.addData("DistL (cm): ", distL.getDistance(distUnit));
+        telemetry.addData("DistR (cm): ", distR.getDistance(distUnit));
+        telemetry.addData("min R", minDistanceR);
+        telemetry.addData("min R H", minDistanceRHeading);
+        telemetry.update();
     }
 }

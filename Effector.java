@@ -43,7 +43,7 @@ public class Effector {
     // Timings
     private final ElapsedTime timer = new ElapsedTime();
     public final static int STAGED_INTAKE_TIME = 300;
-    public final static double STAGED_LIFT_TIME = 1.0;
+    public final static double STAGED_LIFT_TIME = 1000;
 
     private EffectorState currentState = EffectorState.DRIVING;
     private EffectorState desiredState = EffectorState.DRIVING;
@@ -138,7 +138,7 @@ public class Effector {
                 break;
 
             case STAGED_LIFT:
-                if (timer.seconds() > STAGED_LIFT_TIME){
+                if (timer.milliseconds() > STAGED_LIFT_TIME){
                     wristRotator.setPosition(WRIST_INTAKE_POSITION);
 
                     // Wait for 2nd press to go down.

@@ -63,4 +63,3 @@ public class Lift {
         return (int) (ENCODER_TICKRATE * turns);
     }
 }
-
