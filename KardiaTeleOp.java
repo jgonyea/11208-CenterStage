@@ -90,7 +90,7 @@ public class KardiaTeleOp extends OpMode {
     public void loop() {
         drivetrain.moveRobot(gamepad1);
         drone.launch(gamepad1, gamepad2);
-        lift.moveLift(gamepad2);
+        lift.manualUpdate(gamepad2);
         effector.manualUpdate(gamepad2);
 
         // Debug.  Todo: Remove before competition.

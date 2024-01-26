@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -19,9 +20,14 @@ import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 public class KardiaAutonomous extends LinearOpMode {
 
     CenterStageDrive robot;
+    DistanceSensor distL;
+    DistanceSensor distR;
+    DistanceUnit distUnit;
 
     ElapsedTime autonomousModeTimer = new ElapsedTime();
     ElapsedTime stepTimer = new ElapsedTime();
+
+    Lift lift = new Lift();
 
     Servo armRotatorLeft;
     Servo armRotatorRight;
@@ -31,16 +37,14 @@ public class KardiaAutonomous extends LinearOpMode {
     Servo wristRotator;
     Effector effector = new Effector();
 
-    DistanceSensor distL;
-    DistanceSensor distR;
-    DistanceUnit distUnit;
+
 
     private double minDistanceLHeading;
     private double minDistanceR = 10000;
     private double minDistanceRHeading;
 
     // Increment as each autonomous step proceeds.
-    private int step = 1;
+    private int step = 4;
 
 
     @Override
@@ -72,8 +76,6 @@ public class KardiaAutonomous extends LinearOpMode {
 
         // Autonomous loop.
         while (opModeIsActive()) {
-
-            // todo: fill in missing autonomous programming.
 
             // Grab pixels from starting position.
             if (step == 0) {
@@ -232,8 +234,9 @@ public class KardiaAutonomous extends LinearOpMode {
             // Score right (yellow) when path is clear
             if (step == 4 && distL.getDistance(distUnit) > 10 && distR.getDistance(distUnit) > 10){
                 // todo: score yellow
-
-
+                lift.setLiftTarget(1.5, 1);
+                sleep(3000);
+                lift.setLiftTarget(0, 1);
                 step++;
             }
 
@@ -259,6 +262,10 @@ public class KardiaAutonomous extends LinearOpMode {
         pincerLeft = hardwareMap.get(Servo.class, "pincerL");
         pincerRight = hardwareMap.get(Servo.class, "pincerR");
         wristRotator = hardwareMap.get(Servo.class, "wrist");
+
+        // Lift hardware mapping.
+        lift.init(hardwareMap.get(DcMotor.class, "liftL"),
+                  hardwareMap.get(DcMotor.class, "liftR"));
 
         effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
         telemetry.addData("End Effector: ", "Initialized");
