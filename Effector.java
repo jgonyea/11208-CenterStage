@@ -36,6 +36,10 @@ public class Effector {
     private final static double PINCERL_CLOSED_POSITION = 0.4422;
     private final static double PINCERR_CLOSED_POSITION = 0.4939;
     private final static double PINCER_GRIP_OFFSET = 0.06;
+    public enum PINCER_STATE{
+        GRIP,
+        CLOSED
+    }
 
     private final static double WRIST_INTAKE_POSITION = 1;
     private final static double WRIST_SCORING_POSITION = 0.16;
@@ -230,17 +234,38 @@ public class Effector {
     }
 
     private void movePincers(Gamepad gp, Servo pincerLeft, Servo pincerRight) {
-        // todo: we need to not require gamepad input here.
         if (gp.left_bumper) {
-            pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
+            setPincerPosition(pincerLeft, PINCER_STATE.CLOSED);
         } else {
-            pincerLeft.setPosition(PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET);
+            setPincerPosition(pincerLeft, PINCER_STATE.GRIP);
         }
+
         if (gp.right_bumper) {
-            pincerRight.setPosition(PINCERR_CLOSED_POSITION);
+            setPincerPosition(pincerRight, PINCER_STATE.CLOSED);
         } else {
-            pincerRight.setPosition(PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET);
+            setPincerPosition(pincerRight, PINCER_STATE.GRIP);
         }
+    }
+
+    public void setPincerPosition(Servo pincer, PINCER_STATE desiredState){
+        double closedPosition = 0.0;
+        double openPosition = 0.0;
+        if (pincer == pincerLeft){
+            closedPosition = PINCERL_CLOSED_POSITION;
+            openPosition = PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET;
+        } else {
+            closedPosition = PINCERR_CLOSED_POSITION;
+            openPosition = PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET;
+        }
+        switch (desiredState){
+            case GRIP:
+                pincer.setPosition(openPosition);
+                break;
+            case CLOSED:
+                pincer.setPosition(closedPosition);
+                break;
+        }
+
     }
 
     public EffectorState getCurrentState(){

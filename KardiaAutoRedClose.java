@@ -16,8 +16,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 
-@Autonomous(name="RED-KardiaAutonomous")
-public class KardiaAutonomous extends LinearOpMode {
+@Autonomous(name="RED-CLOSE-Auto")
+public class KardiaAutoRedClose extends LinearOpMode {
 
     CenterStageDrive robot;
     DistanceSensor distL;
@@ -45,7 +45,7 @@ public class KardiaAutonomous extends LinearOpMode {
 
     // Increment as each autonomous step proceeds.
     // todo: make this step = 0 for competition.
-    private int step = 4;
+    private int step = 0;
 
 
     @Override
@@ -54,13 +54,13 @@ public class KardiaAutonomous extends LinearOpMode {
         robot = new CenterStageDrive(hardwareMap);
 
         // Positions/ poses.
-        Pose2d startPose = new Pose2d(15, -63, Math.toRadians(90));
-        Pose2d scanningPose = new Pose2d(15, -47.34, 5.6);
+        Pose2d startPose = new Pose2d(12, -63, Math.PI / 2);
+        Pose2d scanningPose = new Pose2d(13.4, -43.5, 5.6);
         Pose2d spikeLeftPose = new Pose2d(8.4, -36.67, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(11.69, -32.47, 1.57);
-        Pose2d spikeRightPose = new Pose2d(14.20, -32.60, 0);
-        Pose2d scoreCenter = new Pose2d(50, -36, 180);
-        Pose2d parking = new Pose2d(50, -60, 180); // todo: fix this pose.
+        Pose2d spikeCenterPose = new Pose2d(11.69, -34.47, Math.PI / 2);
+        Pose2d spikeRightPose = new Pose2d(27.2, -36.0, Math.PI);
+        Pose2d scoreCenter = new Pose2d(50, -36, Math.PI);
+        Pose2d parking = new Pose2d(50, -60, Math.PI); // todo: fix this pose.
         Pose2d spikePose = null;
         Pose2d scorePose = null;
         double scoreOffset = 6.0;
@@ -81,14 +81,18 @@ public class KardiaAutonomous extends LinearOpMode {
             // Grab pixels from starting position.
             if (step == 0) {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                // todo: set pincer to closed
+                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.CLOSED);
+                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
+
 
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
-                // todo: set pincers to open
+                sleep(Effector.STAGED_INTAKE_TIME);
+                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.GRIP);
+                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.GRIP);
 
                 sleep(Effector.STAGED_INTAKE_TIME * 2);
-
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
@@ -117,7 +121,7 @@ public class KardiaAutonomous extends LinearOpMode {
                 switch (teamPropPosition){
                     case 5:
                         spikePose = spikeLeftPose;
-                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset);
+                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset, scoreCenter.getHeading());
                         break;
                     case 4:
                         spikePose = spikeCenterPose;
@@ -125,7 +129,7 @@ public class KardiaAutonomous extends LinearOpMode {
                         break;
                     case 3:
                         spikePose = spikeRightPose;
-                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset);
+                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset, scoreCenter.getHeading());
                         break;
                     default:
                         spikePose = spikeCenterPose;
@@ -157,7 +161,7 @@ public class KardiaAutonomous extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
-                // todo: set left pincer to closed
+                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.CLOSED);
                 sleep(Effector.STAGED_INTAKE_TIME * 2);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
@@ -174,41 +178,42 @@ public class KardiaAutonomous extends LinearOpMode {
                         .lineToLinearHeading(scorePose)
                         .build();
 
-                robot.followTrajectoryAsync(toScoreBoard);
-                stepTimer.reset();
-                while (robot.isBusy() && stepTimer.seconds() < 10) {
-                    // todo: Avoid collisions as best as we can.  Does this not move the robot since we're not updating the robot?
-                    if (distL.getDistance(distUnit) < 10 && distR.getDistance(distUnit) < 10) {
-                        continue;
-                    }
-                    robot.update();
-                }
-
-
-                // Todo: we might not be where we expect.  Can we update without finishing the previous path?
-
+                robot.followTrajectory(toScoreBoard);
 
                 step++;
             }
 
             // Score right (yellow) when path is clear
-            if (step == 4 && distL.getDistance(distUnit) > 10 && distR.getDistance(distUnit) > 10){
-                // todo: score yellow
+            if (step == 4){
                 lift.setLiftTarget(1.5, 1);
-                sleep(3000);
-                lift.setLiftTarget(0, 1);
+                effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
+                sleep((long) Effector.STAGED_LIFT_TIME);
+                effector.setDesiredState(Effector.EffectorState.SCORING);
+                sleep(2000);
+                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
+                sleep(300);
+                effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
+                sleep((long) Effector.STAGED_LIFT_TIME);
+                effector.setDesiredState(Effector.EffectorState.DRIVING);
+                lift.setLiftTarget(0,1);
+
+
                 step++;
             }
 
             // Drive to parking spot
             if (step == 5){
-                telemetryUpdate();
                 // todo: drive to parking zone
                 // todo: Where is the actual parking?  Can we just strafe away from scoreboard?
 
-                // todo: uncomment this step++ so loop doesn't infinitely loop.
-                // Currently commented out for debugging.
-                //step++;
+
+                // todo: remove debug step.
+                step = 99;
+            }
+
+            // todo: Remove this bailout debug step.
+            if (step == 99){
+                telemetryUpdate();
             }
 
 
