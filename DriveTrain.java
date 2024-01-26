@@ -67,8 +67,6 @@ public class DriveTrain {
 
         double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
-        //distanceLeft = averagerL.smooth(distanceLeft);
-        //distanceRight = averagerR.smooth(distanceRight);
         double theta;
         double power;
 
@@ -122,11 +120,6 @@ public class DriveTrain {
                 if (y < 0) {
                     y = Math.min(y, -MINIMUM_POWER);
                 }
-
-                // Robot is too close. Move away.
-                //if (y > 0) {
-                //    y = Math.max(y, MINIMUM_POWER);
-                //
 
                 // Restrict y values between -1 and 1.
                 y = -Math.max(-1, Math.min(1, y));
