@@ -235,8 +235,8 @@ public class KardiaAutonomous extends LinearOpMode {
             if (step == 4 && distL.getDistance(distUnit) > 10 && distR.getDistance(distUnit) > 10){
                 // todo: score yellow
                 lift.setLiftTarget(1.5, 1);
-sleep(3000);
-lift.setLiftTarget(0, 1);
+                sleep(3000);
+                lift.setLiftTarget(0, 1);
                 step++;
             }
 
