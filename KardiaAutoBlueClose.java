@@ -54,13 +54,13 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         robot = new CenterStageDrive(hardwareMap);
 
         // Positions/ poses.
-        Pose2d startPose =       new Pose2d(12, -63, Math.PI / 2);
-        Pose2d scanningPose =    new Pose2d(13.4, -43.5, 5.6);
-        Pose2d spikeLeftPose =   new Pose2d(8.4, -36.67, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(11.69, -34.47, Math.PI / 2);
-        Pose2d spikeRightPose =  new Pose2d(27.2, -36.0, Math.PI);
-        Pose2d scoreCenter =     new Pose2d(50, -36, Math.PI);
-        Pose2d parking =         new Pose2d(50, -60, Math.PI); // todo: fix this pose.
+        Pose2d startPose =       new Pose2d(12, 63, Math.PI * 1.5);
+        Pose2d scanningPose =    new Pose2d(13.4, 43.5, 2.46);
+        Pose2d spikeLeftPose =   new Pose2d(8.4, 36.67, 0);
+        Pose2d spikeCenterPose = new Pose2d(11.69, 34.47, Math.PI * 1.5);
+        Pose2d spikeRightPose =  new Pose2d(27.2, 36.0, 0);
+        Pose2d scoreCenter =     new Pose2d(50, 36, Math.PI);
+        Pose2d parking =         new Pose2d(50, 60, Math.PI);
         Pose2d spikePose = null;
         Pose2d scorePose = null;
         double scoreOffset = 6.0;
