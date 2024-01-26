@@ -42,9 +42,6 @@ public class DriveTrain {
     // Minimum speed for align and approach.
     private final double MINIMUM_POWER = 0.3;
 
-    // Power level set by dpad when overriding left stick.
-    private final double DPAD_POWER = 0.6;
-
     private boolean isDownPressed;
     private boolean isUpPressed;
     private int gear = 3;
@@ -91,18 +88,18 @@ public class DriveTrain {
         // Override left stick if dpad pressed
         if (dpadState == 0b0001) {
             x = 0.0;
-            y = -DPAD_POWER;
+            y = -1;
         }
         if (dpadState == 0b0010) {
-            x = -DPAD_POWER;
+            x = -1;
             y = 0.0;
         }
         if (dpadState == 0b0100) {
             x = 0.0;
-            y = DPAD_POWER;
+            y = 1;
         }
         if (dpadState == 0b1000) {
-            x = DPAD_POWER;
+            x = 1;
             y = 0.0;
         }
 
