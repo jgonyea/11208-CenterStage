@@ -112,7 +112,7 @@ public class Effector {
                 break;
 
             case STAGED_INTAKE:
-                // todo: Maybe we don't want this to drop pixels?
+                // todo: Maybe we don't want this to drop pixels? Maybe we can use the b button to move downward without dropping the pixel?
                 if (is_a_pressed) {
                     pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
                     pincerRight.setPosition(PINCERR_CLOSED_POSITION);
@@ -230,6 +230,7 @@ public class Effector {
     }
 
     private void movePincers(Gamepad gp, Servo pincerLeft, Servo pincerRight) {
+        // todo: we need to not require gamepad input here.
         if (gp.left_bumper) {
             pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
         } else {

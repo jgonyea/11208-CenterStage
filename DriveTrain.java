@@ -43,11 +43,11 @@ public class DriveTrain {
     private final double MINIMUM_POWER = 0.3;
 
     // Power level set by dpad when overriding left stick.
-    private final double DPAD_POWER = 0.6;
+    private final double DPAD_POWER = 1.0;
 
     private boolean isDownPressed;
     private boolean isUpPressed;
-    private int gear = 3;
+    private int gear = 2;
 
     // Configure drivetrain motors.
     public void init(HardwareMap hardwareMap,
@@ -87,14 +87,14 @@ public class DriveTrain {
             dpadState |= 0b0100;
         if (gamepad.dpad_right)
             dpadState |= 0b1000;
-        
+
         // Override left stick if dpad pressed
         if (dpadState == 0b0001) {
             x = 0.0;
             y = -DPAD_POWER;
         }
         if (dpadState == 0b0010) {
-            x = -DPAD_POWER;
+            x = DPAD_POWER;
             y = 0.0;
         }
         if (dpadState == 0b0100) {
@@ -102,7 +102,7 @@ public class DriveTrain {
             y = DPAD_POWER;
         }
         if (dpadState == 0b1000) {
-            x = DPAD_POWER;
+            x = -DPAD_POWER;
             y = 0.0;
         }
 

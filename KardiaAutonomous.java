@@ -40,7 +40,7 @@ public class KardiaAutonomous extends LinearOpMode {
     private double minDistanceRHeading;
 
     // Increment as each autonomous step proceeds.
-    private int step = 2;
+    private int step = 1;
 
 
     @Override
@@ -49,9 +49,9 @@ public class KardiaAutonomous extends LinearOpMode {
         robot = new CenterStageDrive(hardwareMap);
 
         // Positions/ poses.
-        Pose2d startPose = new Pose2d(15, -63, 1.57);
-        Pose2d scanningPose = new Pose2d(15, -42.34, 5.6);
-        Pose2d spikeLeftPose = new Pose2d(8.75, -31.63, 3.124);
+        Pose2d startPose = new Pose2d(15, -63, Math.toRadians(90));
+        Pose2d scanningPose = new Pose2d(15, -47.34, 5.6);
+        Pose2d spikeLeftPose = new Pose2d(8.4, -36.67, Math.PI);
         Pose2d spikeCenterPose = new Pose2d(11.69, -32.47, 1.57);
         Pose2d spikeRightPose = new Pose2d(14.20, -32.60, 0);
         Pose2d scoreCenter = new Pose2d(50, -36, 180);
@@ -62,7 +62,7 @@ public class KardiaAutonomous extends LinearOpMode {
 
 
         // Build trajectory to scanning position.
-        Trajectory beginningToScanning = robot.trajectoryBuilder(robot.getPoseEstimate(), Math.toRadians(90))
+        Trajectory beginningToScanning = robot.trajectoryBuilder(startPose, Math.toRadians(90))
                 .splineToLinearHeading(scanningPose, Math.toRadians(90))
                 .build();
 
