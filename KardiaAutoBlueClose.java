@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 
-@Autonomous(name="BLUE-CLOSE-Auto")
+@Autonomous(name="BlueClose-AlignLeft")
 public class KardiaAutoBlueClose extends LinearOpMode {
 
     CenterStageDrive robot;
@@ -37,7 +37,11 @@ public class KardiaAutoBlueClose extends LinearOpMode {
     Servo wristRotator;
     Effector effector = new Effector();
 
-
+    private enum spike {
+        LEFT,
+        CENTER,
+        RIGHT
+    }
 
     private double minDistanceLHeading;
     private double minDistanceR = 10000;
@@ -55,20 +59,25 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
         // Positions/ poses.
         Pose2d startPose =       new Pose2d(12, 63, Math.PI * 1.5);
-        Pose2d scanningPose =    new Pose2d(13.4, 43.5, 2.46);
-        Pose2d spikeLeftPose =   new Pose2d(8.4, 36.67, 0);
-        Pose2d spikeCenterPose = new Pose2d(11.69, 34.47, Math.PI * 1.5);
-        Pose2d spikeRightPose =  new Pose2d(27.2, 36.0, 0);
+        Pose2d scanningPose =    new Pose2d(8.6, 43.5, 2.46);
+        Pose2d spikeLeftIntermediate = new Pose2d(27.45, 55, 5.37);
+        Pose2d spikeLeftPose =   new Pose2d(27.6, 34.67, Math.PI);
+        Pose2d spikeCenterPose = new Pose2d(8.31, 34.47, Math.PI * 1.5);
+        Pose2d spikeRightIntermediate = new Pose2d(11.6, 36, Math.PI);
+        Pose2d spikeRightPose =  new Pose2d(5.8, 35.8, Math.PI);
+
         Pose2d scoreCenter =     new Pose2d(50, 36, Math.PI);
-        Pose2d parking =         new Pose2d(50, 60, Math.PI);
+        Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() + 20, scoreCenter.getHeading());
         Pose2d spikePose = null;
         Pose2d scorePose = null;
+        Trajectory intermediateTraj = null;
+        Trajectory toScoreBoard = null;
         double scoreOffset = 6.0;
 
 
         // Build trajectory to scanning position.
-        Trajectory beginningToScanning = robot.trajectoryBuilder(startPose, Math.toRadians(90))
-                .splineToLinearHeading(scanningPose, Math.toRadians(90))
+        Trajectory beginningToScanning = robot.trajectoryBuilder(startPose, startPose.getHeading())
+                .splineToLinearHeading(scanningPose, startPose.getHeading())
                 .build();
 
         // Configure robot.
@@ -84,15 +93,15 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.CLOSED);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
 
-
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.GRIP);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.GRIP);
 
-                sleep(Effector.STAGED_INTAKE_TIME * 2);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
@@ -110,25 +119,37 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                         minDistanceR = distRReading;
                         minDistanceRHeading = pose.getHeading();
                     }
+                    telemetryUpdate();
                 }
 
                 // Converts teamPropPosition detected radian angle to integer.
-                int teamPropPosition = (int) Math.floor(minDistanceRHeading);
-                telemetry.addData("Detected team prop", teamPropPosition);
+                spike teamPropPosition = calculateSpike(minDistanceRHeading);
+                telemetry.addData("Detected team prop", teamPropPosition.name());
                 telemetryUpdate();
+
+                Pose2d currentPose = robot.getPoseEstimate();
+
+                Trajectory scanningToLeft = robot.trajectoryBuilder(currentPose)
+                        .lineToSplineHeading(spikeLeftIntermediate)
+                        .build();
+                Trajectory scanningToRight = robot.trajectoryBuilder(currentPose)
+                        .lineToLinearHeading(spikeRightIntermediate)
+                        .build();
 
                 // Set both spike and scoring positions.
                 switch (teamPropPosition){
-                    case 5:
+                    case LEFT:
                         spikePose = spikeLeftPose;
+                        intermediateTraj = scanningToLeft;
                         scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset, scoreCenter.getHeading());
                         break;
-                    case 4:
+                    case CENTER:
                         spikePose = spikeCenterPose;
                         scorePose = scoreCenter;
                         break;
-                    case 3:
+                    case RIGHT:
                         spikePose = spikeRightPose;
+                        intermediateTraj = scanningToRight;
                         scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset, scoreCenter.getHeading());
                         break;
                     default:
@@ -137,18 +158,26 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 }
 
                 // Will move to center of spike and push team prop out of the way.
-                Pose2d currentPose = robot.getPoseEstimate();
-                Trajectory toSpike = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(spikePose)
-                        .build();
+                Trajectory toSpike;
+                if (intermediateTraj != null) {
+                    robot.followTrajectory(intermediateTraj);
+                    toSpike = robot.trajectoryBuilder(intermediateTraj.end())
+                            .lineToLinearHeading(spikePose)
+                            .build();
+                } else {
+                    toSpike = robot.trajectoryBuilder(currentPose)
+                            .lineToLinearHeading(spikePose)
+                            .build();
+                }
 
                 // todo: Check if this can work by chaining?  If so, this is much easier.
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
                         .forward(10)
                         .build();
                 Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
-                        .back(11)
+                        .back(10)
                         .build();
+
                 robot.followTrajectory(toSpike);
                 robot.followTrajectory(clearPropForward);
                 robot.followTrajectory(clearPropBackward);
@@ -174,7 +203,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
             // Drive to score board
             if (step == 3 && scorePose != null){
                 Pose2d currentPose = robot.getPoseEstimate();
-                Trajectory toScoreBoard = robot.trajectoryBuilder(currentPose)
+                toScoreBoard = robot.trajectoryBuilder(currentPose)
                         .lineToLinearHeading(scorePose)
                         .build();
 
@@ -189,7 +218,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep((long) Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
-                sleep(2000);
+                sleep(1000);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
                 sleep(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
@@ -203,20 +232,13 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
             // Drive to parking spot
             if (step == 5){
-                // todo: drive to parking zone
-                // todo: Where is the actual parking?  Can we just strafe away from scoreboard?
+                Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
+                        .lineToLinearHeading(parking)
+                        .build();
+                robot.followTrajectory(park);
 
-
-                // todo: remove debug step.
-                step = 99;
+                step = 1000;
             }
-
-            // todo: Remove this bailout debug step.
-            if (step == 99){
-                telemetryUpdate();
-            }
-
-
         }
     }
 
@@ -268,5 +290,24 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         telemetry.addData("min R", minDistanceR);
         telemetry.addData("min R H", minDistanceRHeading);
         telemetry.update();
+    }
+
+    private spike calculateSpike(double heading){
+        spike detectedSpike = spike.CENTER;
+
+        // Left Spike
+        if (heading > 1.7) {
+            detectedSpike = spike.LEFT;
+        }
+        // Center Spike
+        if (heading >= 1.05 && heading <= 1.7) {
+            detectedSpike = spike.CENTER;
+        }
+        // Right Spike
+        if (heading < 1.05 ){
+            detectedSpike = spike.RIGHT;
+        }
+
+        return detectedSpike;
     }
 }

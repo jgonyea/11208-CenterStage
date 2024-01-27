@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 
-@Autonomous(name="RED-CLOSE-Auto")
+@Autonomous(name="RedClose-AlignRight")
 public class KardiaAutoRedClose extends LinearOpMode {
 
     CenterStageDrive robot;
@@ -37,7 +37,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
     Servo wristRotator;
     Effector effector = new Effector();
 
-
+    Trajectory toScoreBoard = null;
 
     private double minDistanceLHeading;
     private double minDistanceR = 10000;
@@ -54,21 +54,21 @@ public class KardiaAutoRedClose extends LinearOpMode {
         robot = new CenterStageDrive(hardwareMap);
 
         // Positions/ poses.
-        Pose2d startPose = new Pose2d(12, -63, Math.PI / 2);
-        Pose2d scanningPose = new Pose2d(13.4, -43.5, 5.6);
-        Pose2d spikeLeftPose = new Pose2d(8.4, -36.67, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(11.69, -34.47, Math.PI / 2);
-        Pose2d spikeRightPose = new Pose2d(27.2, -36.0, Math.PI);
-        Pose2d scoreCenter = new Pose2d(50, -36, Math.PI);
-        Pose2d parking = new Pose2d(50, -60, Math.PI); // todo: fix this pose.
+        Pose2d startPose =          new Pose2d(12, -63, Math.PI * 0.5);
+        Pose2d scanningPose =       new Pose2d(13.4, -43.5, 5.6);
+        Pose2d spikeLeftPose =      new Pose2d(5.9, -36.67, Math.PI);
+        Pose2d spikeCenterPose =    new Pose2d(11.69, -34.47, Math.PI * 0.5);
+        Pose2d spikeRightPose =     new Pose2d(27.2, -36.0, Math.PI);
+        Pose2d scoreCenter =        new Pose2d(50, -36, Math.PI);
+        Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() - 20, scoreCenter.getHeading());
         Pose2d spikePose = null;
         Pose2d scorePose = null;
         double scoreOffset = 6.0;
 
 
         // Build trajectory to scanning position.
-        Trajectory beginningToScanning = robot.trajectoryBuilder(startPose, Math.toRadians(90))
-                .splineToLinearHeading(scanningPose, Math.toRadians(90))
+        Trajectory beginningToScanning = robot.trajectoryBuilder(startPose, startPose.getHeading())
+                .splineToLinearHeading(scanningPose, startPose.getHeading())
                 .build();
 
         // Configure robot.
@@ -91,8 +91,9 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.GRIP);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.GRIP);
 
-                sleep(Effector.STAGED_INTAKE_TIME * 2);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
@@ -174,7 +175,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
             // Drive to score board
             if (step == 3 && scorePose != null){
                 Pose2d currentPose = robot.getPoseEstimate();
-                Trajectory toScoreBoard = robot.trajectoryBuilder(currentPose)
+                toScoreBoard = robot.trajectoryBuilder(currentPose)
                         .lineToLinearHeading(scorePose)
                         .build();
 
@@ -203,12 +204,12 @@ public class KardiaAutoRedClose extends LinearOpMode {
 
             // Drive to parking spot
             if (step == 5){
-                // todo: drive to parking zone
-                // todo: Where is the actual parking?  Can we just strafe away from scoreboard?
+                Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
+                        .lineToLinearHeading(parking)
+                        .build();
+                robot.followTrajectory(park);
 
-
-                // todo: remove debug step.
-                step = 99;
+                step = 1000;
             }
 
             // todo: Remove this bailout debug step.
