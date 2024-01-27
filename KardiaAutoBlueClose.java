@@ -65,7 +65,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         Pose2d spikeRightIntermediate = new Pose2d(11.6, 36, Math.PI);
         Pose2d spikeRightPose =  new Pose2d(5.8, 35.8, Math.PI);
 
-        Pose2d scoreCenter =     new Pose2d(50, 36, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(49, 36, Math.PI);
         Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() + 20, scoreCenter.getHeading());
         Pose2d spikePose = null;
         Pose2d scorePose = null;
@@ -211,9 +211,9 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
             // Score right (yellow) when path is clear
             if (step == 4){
-                lift.setLiftTarget(1.5, 1);
-                effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                sleep((long) Effector.STAGED_LIFT_TIME);
+                //lift.setLiftTarget(0, 1);
+                //effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
+                //sleep((long) Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
                 sleep(1000);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
@@ -221,7 +221,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep((long) Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
-                lift.setLiftTarget(0,1);
+                //lift.setLiftTarget(0,1);
 
 
                 step++;

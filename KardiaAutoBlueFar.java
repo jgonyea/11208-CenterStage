@@ -16,9 +16,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
-//todo: fix
+
 @Autonomous(name="BlueFar-AlignRight")
-@Disabled
 public class KardiaAutoBlueFar extends LinearOpMode {
 
     CenterStageDrive robot;
@@ -39,11 +38,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
     Servo wristRotator;
     Effector effector = new Effector();
 
-    private enum spike {
-        LEFT,
-        CENTER,
-        RIGHT
-    }
+    Trajectory toScoreBoard = null;
 
     private double minDistanceLHeading;
     private double minDistanceR = 10000;
@@ -59,22 +54,15 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         robot = new CenterStageDrive(hardwareMap);
 
         // Positions/ poses.
-        Pose2d startPose =       new Pose2d(-36, 63, Math.PI * 1.5);
-        Pose2d scanningPose =    new Pose2d(-37.4, 43.5, 2.46);
-        // todo: fix spikeLeftIntermediate.
-        Pose2d spikeLeftIntermediate = new Pose2d(27.45, 55, 5.37);
-        Pose2d spikeLeftPose =   new Pose2d(-32.4, 34.67, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(-35.69, 34.47, Math.PI * 1.5);
-        // todo: fix spikeRightIntermediate.
-        Pose2d spikeRightIntermediate = new Pose2d(11.6, 36, Math.PI);
-        Pose2d spikeRightPose =  new Pose2d(-51.2, 35.8, Math.PI);
-
-        Pose2d scoreCenter =     new Pose2d(50, 36, Math.PI);
-        Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() + 20, scoreCenter.getHeading());
+        Pose2d startPose =          new Pose2d(12, -63, Math.PI * 0.5);
+        Pose2d scanningPose =       new Pose2d(13.4, -43.5, 5.6);
+        Pose2d spikeLeftPose =      new Pose2d(5.9, -36.67, Math.PI);
+        Pose2d spikeCenterPose =    new Pose2d(11.69, -34.47, Math.PI * 0.5);
+        Pose2d spikeRightPose =     new Pose2d(27.2, -36.0, Math.PI);
+        Pose2d scoreCenter =        new Pose2d(50, -36, Math.PI);
+        Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() - 20, scoreCenter.getHeading());
         Pose2d spikePose = null;
         Pose2d scorePose = null;
-        Trajectory intermediateTraj = null;
-        Trajectory toScoreBoard = null;
         double scoreOffset = 6.0;
 
 
@@ -103,8 +91,9 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.GRIP);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.GRIP);
 
-                sleep(Effector.STAGED_INTAKE_TIME * 2);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
@@ -125,33 +114,22 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 }
 
                 // Converts teamPropPosition detected radian angle to integer.
-                spike teamPropPosition = calculateSpike(minDistanceRHeading);
-                telemetry.addData("Detected team prop", teamPropPosition.name());
+                int teamPropPosition = (int) Math.floor(minDistanceRHeading);
+                telemetry.addData("Detected team prop", teamPropPosition);
                 telemetryUpdate();
-
-                Pose2d currentPose = robot.getPoseEstimate();
-
-                Trajectory scanningToLeft = robot.trajectoryBuilder(currentPose)
-                        .lineToSplineHeading(spikeLeftIntermediate)
-                        .build();
-                Trajectory scanningToRight = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(spikeRightIntermediate)
-                        .build();
 
                 // Set both spike and scoring positions.
                 switch (teamPropPosition){
-                    case LEFT:
+                    case 5:
                         spikePose = spikeLeftPose;
-                        intermediateTraj = scanningToLeft;
                         scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset, scoreCenter.getHeading());
                         break;
-                    case CENTER:
+                    case 4:
                         spikePose = spikeCenterPose;
                         scorePose = scoreCenter;
                         break;
-                    case RIGHT:
+                    case 3:
                         spikePose = spikeRightPose;
-                        intermediateTraj = scanningToRight;
                         scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset, scoreCenter.getHeading());
                         break;
                     default:
@@ -160,8 +138,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 }
 
                 // Will move to center of spike and push team prop out of the way.
-                // todo: test this pushing.
-                currentPose = robot.getPoseEstimate();
+                Pose2d currentPose = robot.getPoseEstimate();
                 Trajectory toSpike = robot.trajectoryBuilder(currentPose)
                         .lineToLinearHeading(spikePose)
                         .build();
@@ -190,7 +167,9 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
-                // todo: once intermediates are fixed, don't skip rest of steps.
+                step++;
+
+                // todo: Don't skip driving to board.
                 step = 99;
             }
 
@@ -220,8 +199,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
                 lift.setLiftTarget(0,1);
 
-                // todo: Don't skip parking.
-                step = 99;
+
+                step++;
             }
 
             // Drive to parking spot
@@ -255,7 +234,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
         // Lift hardware mapping.
         lift.init(hardwareMap.get(DcMotor.class, "liftL"),
-                  hardwareMap.get(DcMotor.class, "liftR"));
+                hardwareMap.get(DcMotor.class, "liftR"));
 
         effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
         telemetry.addData("End Effector: ", "Initialized");
@@ -291,24 +270,5 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         telemetry.addData("min R", minDistanceR);
         telemetry.addData("min R H", minDistanceRHeading);
         telemetry.update();
-    }
-
-    private spike calculateSpike(double heading){
-        spike detectedSpike = spike.CENTER;
-
-        // Left Spike
-        if (heading > 1.7) {
-            detectedSpike = spike.LEFT;
-        }
-        // Center Spike
-        if (heading >= 1.05 && heading <= 1.7) {
-            detectedSpike = spike.CENTER;
-        }
-        // Right Spike
-        if (heading < 1.05 ){
-            detectedSpike = spike.RIGHT;
-        }
-
-        return detectedSpike;
     }
 }
