@@ -84,8 +84,6 @@ public class Effector {
         if (desiredState != currentState){
             moveEffector(nextState());
         }
-        // todo: Check if we need to move pincers
-
     }
 
     /**

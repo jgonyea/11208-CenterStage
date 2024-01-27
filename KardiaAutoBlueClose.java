@@ -48,7 +48,6 @@ public class KardiaAutoBlueClose extends LinearOpMode {
     private double minDistanceRHeading;
 
     // Increment as each autonomous step proceeds.
-    // todo: make this step = 0 for competition.
     private int step = 0;
 
 
@@ -170,7 +169,6 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                             .build();
                 }
 
-                // todo: Check if this can work by chaining?  If so, this is much easier.
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
                         .forward(10)
                         .build();
@@ -196,7 +194,6 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
-                // todo: don't skip 3.
                 step++;
             }
 

@@ -44,7 +44,6 @@ public class KardiaAutoRedClose extends LinearOpMode {
     private double minDistanceRHeading;
 
     // Increment as each autonomous step proceeds.
-    // todo: make this step = 0 for competition.
     private int step = 0;
 
 
@@ -143,7 +142,6 @@ public class KardiaAutoRedClose extends LinearOpMode {
                         .lineToLinearHeading(spikePose)
                         .build();
 
-                // todo: Check if this can work by chaining?  If so, this is much easier.
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
                         .forward(10)
                         .build();
@@ -168,7 +166,6 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
-                // todo: don't skip 3.
                 step++;
             }
 
@@ -209,10 +206,10 @@ public class KardiaAutoRedClose extends LinearOpMode {
                         .build();
                 robot.followTrajectory(park);
 
-                step = 1000;
+                step = 99;
             }
 
-            // todo: Remove this bailout debug step.
+
             if (step == 99){
                 telemetryUpdate();
             }
