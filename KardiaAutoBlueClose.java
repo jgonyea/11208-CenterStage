@@ -234,7 +234,12 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                         .build();
                 robot.followTrajectory(park);
 
-                step = 1000;
+                step = 99;
+            }
+
+
+            if (step == 99){
+                telemetryUpdate();
             }
         }
     }

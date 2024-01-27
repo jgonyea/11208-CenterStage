@@ -115,6 +115,7 @@ public class Effector {
 
             case STAGED_INTAKE:
                 // todo: Maybe we don't want this to drop pixels? Maybe we can use the b button to move downward without dropping the pixel?
+                // https://github.com/jgonyea/11208-CenterStage/issues/26
                 if (is_a_pressed) {
                     pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
                     pincerRight.setPosition(PINCERR_CLOSED_POSITION);
