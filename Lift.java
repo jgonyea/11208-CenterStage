@@ -12,7 +12,7 @@ public class Lift {
     public DcMotor liftLeft;
     public DcMotor liftRight;
     // Number of turns to reach full lift extension.
-    private static final double MAX_TURNS = 5.4;
+    private static final double MAX_TURNS = 5.6;
 
     // Encoder ticks for one full revolution.
     public static final double ENCODER_TICKRATE = 751.8;

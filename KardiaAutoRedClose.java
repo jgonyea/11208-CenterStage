@@ -58,8 +58,8 @@ public class KardiaAutoRedClose extends LinearOpMode {
         Pose2d spikeLeftPose =      new Pose2d(5.9, -36.67, Math.PI);
         Pose2d spikeCenterPose =    new Pose2d(11.69, -34.47, Math.PI * 0.5);
         Pose2d spikeRightPose =     new Pose2d(27.2, -36.0, Math.PI);
-        Pose2d scoreCenter =        new Pose2d(49, -36, Math.PI);
-        Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() - 20, scoreCenter.getHeading());
+        Pose2d scoreCenter =        new Pose2d(48, -36, Math.PI);
+        Pose2d parking =            new Pose2d(scoreCenter.getX() - 4, scoreCenter.getY() + 24, scoreCenter.getHeading()); // Park toward wall.
         Pose2d spikePose = null;
         Pose2d scorePose = null;
         double scoreOffset = 6.0;
@@ -121,7 +121,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 switch (teamPropPosition){
                     case 5:
                         spikePose = spikeLeftPose;
-                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset, scoreCenter.getHeading());
+                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset + 4 , scoreCenter.getHeading());
                         break;
                     case 4:
                         spikePose = spikeCenterPose;
@@ -184,10 +184,10 @@ public class KardiaAutoRedClose extends LinearOpMode {
             // Score right (yellow) when path is clear
             if (step == 4){
                 //lift.setLiftTarget(1.5, 1);
-                //effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                //sleep((long) Effector.STAGED_LIFT_TIME);
+                effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
+                sleep((long) Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
-                sleep(2000);
+                sleep(1000);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
                 sleep(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
