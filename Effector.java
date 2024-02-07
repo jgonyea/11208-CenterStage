@@ -33,9 +33,9 @@ public class Effector {
     private final static double HAND_INTAKE_POSITION = 0.40;
     private final static double HAND_SCORING_POSITION = 0.258;
 
-    private final static double PINCERL_CLOSED_POSITION = 0.4422;
-    private final static double PINCERR_CLOSED_POSITION = 0.4939;
-    private final static double PINCER_GRIP_OFFSET = 0.06;
+    private final static double PINCERL_CLOSED_POSITION = 0.4944;
+    private final static double PINCERR_CLOSED_POSITION = 0.4344;
+    private final static double PINCER_GRIP_OFFSET = 0.05;
     public enum PINCER_STATE{
         GRIP,
         CLOSED
@@ -143,6 +143,7 @@ public class Effector {
             case STAGED_LIFT:
                 if (timer.milliseconds() > STAGED_LIFT_TIME){
                     wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                    handActuator.setPosition(HAND_DRIVING_POSITION);
 
                     // Wait for 2nd press to go down.
                     if (gp.a && !this.is_a_pressed) {
@@ -215,7 +216,6 @@ public class Effector {
             case STAGED_LIFT:
                 armRotatorLeft.setPosition(ARM_STAGED_LIFT_POSITION);
                 armRotatorRight.setPosition(ARM_STAGED_LIFT_POSITION);
-                handActuator.setPosition(HAND_DRIVING_POSITION);
                 break;
 
             case SCORING:
