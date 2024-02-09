@@ -164,8 +164,6 @@ public class DriveTrain {
                     case SKIP_SECOND_GEAR:
                         gear = 3;
                         break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + currentThrottleMode);
                 }
             }
         }
@@ -183,8 +181,6 @@ public class DriveTrain {
                     case SKIP_SECOND_GEAR:
                         gear = 1;
                         break;
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + currentThrottleMode);
                 }
             }
         }
