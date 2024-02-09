@@ -45,7 +45,7 @@ public class DriveTrain {
     // Power level set by dpad when overriding left stick.
     private final double DPAD_POWER = 1.0;
 
-    enum ThrottleMode {
+    public enum ThrottleMode {
         ALL_GEARS, SKIP_SECOND_GEAR
     }
 
