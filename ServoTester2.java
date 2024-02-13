@@ -38,6 +38,8 @@ public class ServoTester2 extends OpMode {
             armL.setPosition(newArmPosition);
             armR.setPosition(newArmPosition);
         }
+        if (gamepad1.left_bumper) handSelected = false;
+        if (gamepad1.right_bumper) handSelected = true;
         String lb1 = handSelected ? "" : "[";
         String rb1 = handSelected ? "" : "]";
         String lb2 = handSelected ? "[" : "";
