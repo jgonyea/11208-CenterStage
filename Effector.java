@@ -33,9 +33,9 @@ public class Effector {
     private final static double HAND_INTAKE_POSITION = 0.40;
     private final static double HAND_SCORING_POSITION = 0.258;
 
-    private final static double PINCERL_CLOSED_POSITION = 0.4944;
-    private final static double PINCERR_CLOSED_POSITION = 0.4344;
-    private final static double PINCER_GRIP_OFFSET = 0.05;
+    private final static double PINCERL_CLOSED_POSITION = 0.5067;
+    private final static double PINCERR_CLOSED_POSITION = 0.4461;
+    private final static double PINCER_GRIP_OFFSET = 0.07;
     public enum PINCER_STATE{
         GRIP,
         CLOSED
