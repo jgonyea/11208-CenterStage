@@ -143,7 +143,6 @@ public class Effector {
             case STAGED_LIFT:
                 if (timer.milliseconds() > STAGED_LIFT_TIME){
                     wristRotator.setPosition(WRIST_INTAKE_POSITION);
-                    handActuator.setPosition(HAND_DRIVING_POSITION);
 
                     // Wait for 2nd press to go down.
                     if (gp.a && !this.is_a_pressed) {
@@ -216,6 +215,7 @@ public class Effector {
             case STAGED_LIFT:
                 armRotatorLeft.setPosition(ARM_STAGED_LIFT_POSITION);
                 armRotatorRight.setPosition(ARM_STAGED_LIFT_POSITION);
+                handActuator.setPosition(HAND_DRIVING_POSITION);
                 break;
 
             case SCORING:
