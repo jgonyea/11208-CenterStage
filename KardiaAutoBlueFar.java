@@ -90,14 +90,14 @@ public class KardiaAutoBlueFar extends LinearOpMode {
             // Grab pixels from starting position.
             if (step == 0) {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.CLOSED);
-                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.CLOSED);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.CLOSED);
 
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.GRIP);
-                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.GRIP);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
 
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
@@ -180,7 +180,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
-                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.CLOSED);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.CLOSED);
                 sleep(Effector.STAGED_INTAKE_TIME * 2);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
@@ -231,7 +231,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 //sleep((long) Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
                 sleep(1000);
-                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.CLOSED);
                 sleep(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep((long) Effector.STAGED_LIFT_TIME);
