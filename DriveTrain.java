@@ -47,6 +47,7 @@ public class DriveTrain {
 
     private boolean isDownPressed;
     private boolean isUpPressed;
+    private boolean isYPressed;
     private int gear = 2;
 
     // Configure drivetrain motors.
@@ -188,8 +189,20 @@ public class DriveTrain {
         powerRearLeft   *= throttle;
         powerRearRight  *= throttle;
 
+        // Turn 180deg when Y pressed.
+        if (gamepad.y && !isYPressed) {
+            isYPressed = true;
+            // See https://learnroadrunner.com/advanced.html#_180%C2%B0-turn-direction
+            centerStageDrive.turnAsync(Math.PI + 1e-6);
+        }
+        if (!gamepad.y) {
+            isYPressed = false;
+        }
+
         // Assign power to wheels.
-        centerStageDrive.setMotorPowers(-powerFrontLeft, -powerRearLeft, -powerRearRight, -powerFrontRight);
+        if (!centerStageDrive.isBusy()) {
+            centerStageDrive.setMotorPowers(-powerFrontLeft, -powerRearLeft, -powerRearRight, -powerFrontRight);
+        }
         centerStageDrive.update();
     }
 
