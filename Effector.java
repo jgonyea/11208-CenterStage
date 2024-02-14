@@ -46,8 +46,8 @@ public class Effector {
 
     // Timings
     private final ElapsedTime timer = new ElapsedTime();
-    public final static int STAGED_INTAKE_TIME = 300;
-    public final static double STAGED_LIFT_TIME = 500;
+    public final static long STAGED_INTAKE_TIME = 300;
+    public final static long STAGED_LIFT_TIME = 500;
 
     private EffectorState currentState = EffectorState.DRIVING;
     private EffectorState desiredState = EffectorState.DRIVING;
