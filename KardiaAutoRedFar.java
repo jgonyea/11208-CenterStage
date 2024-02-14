@@ -5,6 +5,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -57,19 +58,20 @@ public class KardiaAutoRedFar extends LinearOpMode {
         robot = new CenterStageDrive(hardwareMap);
 
         // Positions/ poses.
-        Pose2d startPose =       new Pose2d(12, 63, Math.PI * 1.5);
-        Pose2d scanningPose =    new Pose2d(8.6, 43.5, 2.46);
-        Pose2d spikeLeftIntermediate = new Pose2d(27.45, 55, 5.37);
-        Pose2d spikeLeftPose =   new Pose2d(27.6, 34.67, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(8.31, 34.47, Math.PI * 1.5);
-        Pose2d spikeRightIntermediate = new Pose2d(11.6, 36, Math.PI);
-        Pose2d spikeRightPose =  new Pose2d(5.8, 35.8, Math.PI);
+        Pose2d startPose =       new Pose2d(-36, -63, Math.PI / 2);
+        Pose2d scanningPose =    new Pose2d(-32.6, -43.5, 5.60);
+        Pose2d spikeLeftPose =   new Pose2d(-34, -34.67, Math.PI);
+        Pose2d spikeCenterPose = new Pose2d(-32.31, -36.47, Math.PI / 2);
+        Pose2d spikeRightPose =  new Pose2d(-29.8, -37.8, 0);
+
 
         Pose2d scoreCenter =     new Pose2d(49, 36, Math.PI);
         Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() + 20, scoreCenter.getHeading());
         Pose2d spikePose = null;
-        Pose2d scorePose = null;
+        Pose2d finalScorePose = null;
         Trajectory intermediateTraj = null;
+        Trajectory toCenterSquare = null;
+        Trajectory spikeClear = null;
         Trajectory toScoreBoard = null;
         double scoreOffset = 6.0;
 
@@ -106,6 +108,12 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 step++;
             }
 
+            // Debug
+            if (step == 98){
+                robot.followTrajectory(beginningToScanning);
+                step = 99;
+            }
+
             // Locate team prop using distance sensor sweep and maneuver to proper location.
             if (step == 1) {
                 robot.followTrajectory(beginningToScanning);
@@ -128,46 +136,31 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
                 Pose2d currentPose = robot.getPoseEstimate();
 
-                Trajectory scanningToLeft = robot.trajectoryBuilder(currentPose)
-                        .lineToSplineHeading(spikeLeftIntermediate)
-                        .build();
-                Trajectory scanningToRight = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(spikeRightIntermediate)
-                        .build();
-
                 // Set both spike and scoring positions.
                 switch (teamPropPosition){
                     case LEFT:
                         spikePose = spikeLeftPose;
-                        intermediateTraj = scanningToLeft;
-                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset, scoreCenter.getHeading());
+                        finalScorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset, scoreCenter.getHeading());
                         break;
                     case CENTER:
                         spikePose = spikeCenterPose;
-                        scorePose = scoreCenter;
+                        finalScorePose = scoreCenter;
                         break;
                     case RIGHT:
                         spikePose = spikeRightPose;
-                        intermediateTraj = scanningToRight;
-                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset, scoreCenter.getHeading());
+                        finalScorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset, scoreCenter.getHeading());
                         break;
                     default:
                         spikePose = spikeCenterPose;
-                        scorePose = scoreCenter;
+                        finalScorePose = scoreCenter;
                 }
 
                 // Will move to center of spike and push team prop out of the way.
                 Trajectory toSpike;
-                if (intermediateTraj != null) {
-                    robot.followTrajectory(intermediateTraj);
-                    toSpike = robot.trajectoryBuilder(intermediateTraj.end())
-                            .lineToLinearHeading(spikePose)
-                            .build();
-                } else {
-                    toSpike = robot.trajectoryBuilder(currentPose)
-                            .lineToLinearHeading(spikePose)
-                            .build();
-                }
+                toSpike = robot.trajectoryBuilder(currentPose)
+                        .lineToLinearHeading(spikePose)
+                        .build();
+
 
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
                         .forward(10)
@@ -196,24 +189,44 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
                 step++;
 
-                //todo: dont't skip step 3.
+            }
+
+            // Clears position from placed purple pixel.
+            if (step == 3 && finalScorePose != null){
+                Pose2d currentPose = robot.getPoseEstimate();
+                toCenterSquare = robot.trajectoryBuilder(currentPose)
+                        .lineToLinearHeading(new Pose2d(scanningPose.vec() ,currentPose.getHeading()))
+                        .build();
+
+                robot.followTrajectory(toCenterSquare);
+                spikeClear = robot.trajectoryBuilder(toCenterSquare.end())
+                        .lineToLinearHeading(new Pose2d(scanningPose.getX(), scanningPose.getY() - 12, Math.PI))
+                        .build();
+                robot.followTrajectory(spikeClear);
+                step ++;
+            }
+
+            // Spline maneuver to begin approach.
+            if (step == 4){
+                Trajectory slider = robot.trajectoryBuilder(spikeClear.end())
+                        .splineToLinearHeading(new Pose2d(-50.83, -46.43, Math.PI), Math.PI / 2)
+                        .splineToLinearHeading(new Pose2d(-50.83, -17.91, Math.PI), Math.PI / 2)
+                        .splineToLinearHeading(new Pose2d(0, -17.91, Math.PI), 0)
+                        .build();
+                robot.followTrajectory(slider);
                 step = 99;
             }
 
-            // Drive to score board
-            if (step == 3 && scorePose != null){
-                Pose2d currentPose = robot.getPoseEstimate();
-                toScoreBoard = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(scorePose)
-                        .build();
 
-                robot.followTrajectory(toScoreBoard);
+            if (step == 13){
+                //toScoreBoard = robot.trajectoryBuilder(currentPose)
+                //        .lineToLinearHeading(scorePose)
+                //        .build();
 
-                step++;
+                //robot.followTrajectory(toScoreBoard);
             }
-
             // Score right (yellow) when path is clear
-            if (step == 4){
+            if (step == 14){
                 //lift.setLiftTarget(0, 1);
                 //effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 //sleep((long) Effector.STAGED_LIFT_TIME);
@@ -231,7 +244,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
             }
 
             // Drive to parking spot
-            if (step == 5){
+            if (step == 15){
                 Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
                         .lineToLinearHeading(parking)
                         .build();
@@ -301,15 +314,15 @@ public class KardiaAutoRedFar extends LinearOpMode {
         spike detectedSpike = spike.CENTER;
 
         // Left Spike
-        if (heading > 1.7) {
+        if (heading > 4.84) {
             detectedSpike = spike.LEFT;
         }
         // Center Spike
-        if (heading >= 1.05 && heading <= 1.7) {
+        if (heading >= 4.19 && heading <= 4.84) {
             detectedSpike = spike.CENTER;
         }
         // Right Spike
-        if (heading < 1.05 ){
+        if (heading < 4.19 ){
             detectedSpike = spike.RIGHT;
         }
 
