@@ -5,7 +5,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -65,13 +64,18 @@ public class KardiaAutoRedFar extends LinearOpMode {
         Pose2d spikeRightPose =  new Pose2d(-29.8, -37.8, 0);
 
 
+        Pose2d scoreTrajPose1 =  new Pose2d(-50.83, -46.43, Math.PI);
+        Pose2d scoreTrajPose2 =  new Pose2d(-50.83, -17.91, Math.PI);
+        Pose2d scoreTrajPose3 =  new Pose2d(0, -17.91, Math.PI);
+        // Todo: Fix fake value "scoreTrajPause"
+        Pose2d scoreTrajPause =  new Pose2d(5, -10, 2.9);
         Pose2d scoreCenter =     new Pose2d(49, 36, Math.PI);
         Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() + 20, scoreCenter.getHeading());
         Pose2d spikePose = null;
         Pose2d finalScorePose = null;
-        Trajectory intermediateTraj = null;
         Trajectory toCenterSquare = null;
         Trajectory spikeClear = null;
+        Trajectory slider = null;
         Trajectory toScoreBoard = null;
         double scoreOffset = 6.0;
 
@@ -87,6 +91,12 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
         // Autonomous loop.
         while (opModeIsActive()) {
+
+            // Debug
+            if (step == 98){
+                robot.followTrajectory(beginningToScanning);
+                step = 99;
+            }
 
             // Grab pixels from starting position.
             if (step == 0) {
@@ -106,12 +116,6 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
-            }
-
-            // Debug
-            if (step == 98){
-                robot.followTrajectory(beginningToScanning);
-                step = 99;
             }
 
             // Locate team prop using distance sensor sweep and maneuver to proper location.
@@ -208,43 +212,54 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
             // Spline maneuver to begin approach.
             if (step == 4){
-                Trajectory slider = robot.trajectoryBuilder(spikeClear.end())
-                        .splineToLinearHeading(new Pose2d(-50.83, -46.43, Math.PI), Math.PI / 2)
-                        .splineToLinearHeading(new Pose2d(-50.83, -17.91, Math.PI), Math.PI / 2)
-                        .splineToLinearHeading(new Pose2d(0, -17.91, Math.PI), 0)
+                slider = robot.trajectoryBuilder(spikeClear.end())
+                        .splineToLinearHeading(scoreTrajPose1, Math.PI / 2)
+                        .splineToLinearHeading(scoreTrajPose2, Math.PI / 2)
+                        .splineToLinearHeading(scoreTrajPose3, 0)
+                        .splineToSplineHeading(scoreTrajPause, 0)
                         .build();
                 robot.followTrajectory(slider);
-                step = 99;
+                step++;
             }
 
 
-            if (step == 13){
-                //toScoreBoard = robot.trajectoryBuilder(currentPose)
-                //        .lineToLinearHeading(scorePose)
-                //        .build();
-
-                //robot.followTrajectory(toScoreBoard);
+            // Wait for distance sensors to clear
+            if (step == 5) {
+                // Todo: what condition should go here
+                //if (distL and distR are far enough) {
+                    step++;
+                //}
             }
-            // Score right (yellow) when path is clear
-            if (step == 14){
-                //lift.setLiftTarget(0, 1);
-                //effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                //sleep((long) Effector.STAGED_LIFT_TIME);
+
+            // Drive to score board
+            if (step == 6 && finalScorePose != null){
+                toScoreBoard = robot.trajectoryBuilder(slider.end())
+                        .lineToLinearHeading(finalScorePose)
+                        .build();
+
+                robot.followTrajectory(toScoreBoard);
+                step++;
+            }
+
+            // Score right (yellow)
+            if (step == 7) {
+                lift.setLiftTarget(1.5, 1);
+                effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
+                sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
                 sleep(1000);
                 effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
                 sleep(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                sleep((long) Effector.STAGED_LIFT_TIME);
+                sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
-                //lift.setLiftTarget(0,1);
-
+                lift.setLiftTarget(0, 1);
 
                 step++;
             }
 
             // Drive to parking spot
-            if (step == 15){
+            if (step == 8){
                 Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
                         .lineToLinearHeading(parking)
                         .build();
@@ -282,6 +297,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
         distL = hardwareMap.get(DistanceSensor.class, "distL");
         distR = hardwareMap.get(DistanceSensor.class, "distR");
         distUnit = DistanceUnit.CM;
+
         robot.setPoseEstimate(startPose);
         while (!isStarted()) {
             robot.update();
