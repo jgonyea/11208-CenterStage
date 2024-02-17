@@ -58,7 +58,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
         Pose2d spikeLeftPose =      new Pose2d(5.9, -36.67, Math.PI);
         Pose2d spikeCenterPose =    new Pose2d(11.69, -34.47, Math.PI * 0.5);
         Pose2d spikeRightPose =     new Pose2d(27.2, -36.0, Math.PI);
-        Pose2d scoreCenter =        new Pose2d(48, -36, Math.PI);
+        Pose2d scoreCenter =        new Pose2d(46.6, -35.5, Math.PI);
         Pose2d parking =            new Pose2d(scoreCenter.getX() - 4, scoreCenter.getY() + 24, scoreCenter.getHeading()); // Park toward wall.
         Pose2d spikePose = null;
         Pose2d scorePose = null;
@@ -121,7 +121,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 switch (teamPropPosition){
                     case 5:
                         spikePose = spikeLeftPose;
-                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset + 4 , scoreCenter.getHeading());
+                        scorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset - 0.5, scoreCenter.getHeading());
                         break;
                     case 4:
                         spikePose = spikeCenterPose;
@@ -143,10 +143,10 @@ public class KardiaAutoRedClose extends LinearOpMode {
                         .build();
 
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
-                        .forward(10)
+                        .forward(7)
                         .build();
                 Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
-                        .back(11)
+                        .back(9)
                         .build();
                 robot.followTrajectory(toSpike);
                 robot.followTrajectory(clearPropForward);

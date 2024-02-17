@@ -43,9 +43,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         RIGHT
     }
 
+    private double minDistanceL = 10000;
     private double minDistanceLHeading;
-    private double minDistanceR = 10000;
-    private double minDistanceRHeading;
 
     // Increment as each autonomous step proceeds.
     private int step = 0;
@@ -61,15 +60,16 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         Pose2d scanningPose =    new Pose2d(-32.6, 43.5, 0.68);
         Pose2d spikeLeftPose =   new Pose2d(-30, 38.17, 0);
         Pose2d spikeCenterPose = new Pose2d(-34.31, 36.47, Math.PI * 1.5);
-        Pose2d spikeRightPose =  new Pose2d(-34.3, 33.8, Math.PI);
+        Pose2d spikeRightPose =  new Pose2d(-33.8, 33.8, Math.PI);
 
 
-        Pose2d scoreTrajPose1 =  new Pose2d(-50.83, 46.43, Math.PI);
-        Pose2d scoreTrajPose2 =  new Pose2d(-50.83, 13.91, Math.PI);
-        Pose2d scoreTrajPose3 =  new Pose2d(0, 13.91, Math.PI);
+        Pose2d scoreTrajPose1 =  new Pose2d(-56, 46.43, Math.PI / 2);
+        Pose2d scoreTrajPose2 =  new Pose2d(-56, 23.91, Math.PI / 2);
+        Pose2d scoreTrajPose3 =  new Pose2d(0, 13.91, Math.PI / 2);
         // Todo: Fix fake value "scoreTrajPause"
-        Pose2d scoreTrajPause =  new Pose2d(5, 10, 3.5);
-        Pose2d scoreCenter =     new Pose2d(49, -36, Math.PI);
+        Pose2d scoreTrajPause =  new Pose2d(5, 13.91, 3.5);
+        // Todo:
+        Pose2d scoreCenter =     new Pose2d(44, 36, Math.PI);
         Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() + 20, scoreCenter.getHeading());
         Pose2d spikePose = null;
         Pose2d finalScorePose = null;
@@ -125,16 +125,16 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 while (robot.isBusy()) {
                     robot.update();
                     Pose2d pose = robot.getPoseEstimate();
-                    double distRReading = distR.getDistance(distUnit);
-                    if (distRReading < minDistanceR) {
-                        minDistanceR = distRReading;
-                        minDistanceRHeading = pose.getHeading();
+                    double distLReading = distL.getDistance(distUnit);
+                    if (distLReading < minDistanceL) {
+                        minDistanceL = distLReading;
+                        minDistanceLHeading = pose.getHeading();
                     }
                     telemetryUpdate();
                 }
 
                 // Converts teamPropPosition detected radian angle to integer.
-                spike teamPropPosition = calculateSpike(minDistanceRHeading);
+                spike teamPropPosition = calculateSpike(minDistanceLHeading);
                 telemetry.addData("Detected team prop", teamPropPosition.name());
                 telemetryUpdate();
 
@@ -167,10 +167,10 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
 
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
-                        .forward(10)
+                        .forward(6)
                         .build();
                 Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
-                        .back(10)
+                        .back(6)
                         .build();
 
                 robot.followTrajectory(toSpike);
@@ -199,12 +199,12 @@ public class KardiaAutoBlueFar extends LinearOpMode {
             if (step == 3 && finalScorePose != null){
                 Pose2d currentPose = robot.getPoseEstimate();
                 toCenterSquare = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(new Pose2d(scanningPose.vec() ,currentPose.getHeading()))
+                        .lineToLinearHeading(new Pose2d(scanningPose.vec() ,Math.PI / 2))
                         .build();
 
                 robot.followTrajectory(toCenterSquare);
                 spikeClear = robot.trajectoryBuilder(toCenterSquare.end())
-                        .lineToLinearHeading(new Pose2d(scanningPose.getX(), scanningPose.getY() + 12, Math.PI))
+                        .lineToLinearHeading(new Pose2d(scanningPose.getX(), scanningPose.getY() + 12, Math.PI / 2))
                         .build();
                 robot.followTrajectory(spikeClear);
                 step ++;
@@ -225,6 +225,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
             // Wait for distance sensors to clear
             if (step == 5) {
+                lift.setLiftTarget(1.5, 1);
+                sleep(2000);
                 // Todo: what condition should go here
                 //if (distL and distR are far enough) {
                     step++;
@@ -243,7 +245,6 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
             // Score right (yellow)
             if (step == 7) {
-                lift.setLiftTarget(1.5, 1);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
@@ -321,8 +322,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
         telemetry.addData("DistL (cm): ", distL.getDistance(distUnit));
         telemetry.addData("DistR (cm): ", distR.getDistance(distUnit));
-        telemetry.addData("min R", minDistanceR);
-        telemetry.addData("min R H", minDistanceRHeading);
+        telemetry.addData("min L", minDistanceL);
+        telemetry.addData("min L H", minDistanceLHeading);
         telemetry.update();
     }
 
@@ -330,15 +331,15 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         spike detectedSpike = spike.CENTER;
 
         // Left Spike
-        if (heading > 1.7) {
+        if (heading > 2.09) {
             detectedSpike = spike.LEFT;
         }
         // Center Spike
-        if (heading >= 1.05 && heading <= 1.7) {
+        if (heading >= 1.44 && heading <= 2.09) {
             detectedSpike = spike.CENTER;
         }
         // Right Spike
-        if (heading < 1.05){
+        if (heading < 1.44){
             detectedSpike = spike.RIGHT;
         }
 
