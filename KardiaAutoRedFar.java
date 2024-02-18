@@ -5,6 +5,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -43,7 +44,6 @@ public class KardiaAutoRedFar extends LinearOpMode {
         RIGHT
     }
 
-    private double minDistanceLHeading;
     private double minDistanceR = 10000;
     private double minDistanceRHeading;
 
@@ -59,24 +59,17 @@ public class KardiaAutoRedFar extends LinearOpMode {
         // Positions/ poses.
         Pose2d startPose =       new Pose2d(-36, -63, Math.PI / 2);
         Pose2d scanningPose =    new Pose2d(-32.6, -43.5, 5.60);
-        Pose2d spikeLeftPose =   new Pose2d(-34, -34.67, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(-32.31, -36.47, Math.PI / 2);
-        Pose2d spikeRightPose =  new Pose2d(-29.8, -37.8, 0);
+        Pose2d spikeLeftPose =   new Pose2d(-33, -34.67, Math.PI);
+        Pose2d spikeCenterPose = new Pose2d(-36.21, -21.33, Math.PI * 1.5);
+        Pose2d spikeRightPose =  new Pose2d(-32.8, -37.8, 0);
 
 
-        Pose2d scoreTrajPose1 =  new Pose2d(-50.83, -46.43, Math.PI);
-        Pose2d scoreTrajPose2 =  new Pose2d(-50.83, -17.91, Math.PI);
-        Pose2d scoreTrajPose3 =  new Pose2d(0, -17.91, Math.PI);
-        // Todo: Fix fake value "scoreTrajPause"
-        Pose2d scoreTrajPause =  new Pose2d(5, -10, 2.9);
-        Pose2d scoreCenter =     new Pose2d(49, 36, Math.PI);
-        Pose2d parking =         new Pose2d(scoreCenter.getX(), scoreCenter.getY() + 20, scoreCenter.getHeading());
+        Vector2d afterPurple =   new Vector2d(-33.26, -15.6);
+        Pose2d preScoreTraj =    new Pose2d(-32.26, -14.6, Math.PI);
+        Pose2d scoreTrajPose2 =  new Pose2d(32.74, -15.6, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(45.894, -37.109, Math.PI);
         Pose2d spikePose = null;
         Pose2d finalScorePose = null;
-        Trajectory toCenterSquare = null;
-        Trajectory spikeClear = null;
-        Trajectory slider = null;
-        Trajectory toScoreBoard = null;
         double scoreOffset = 6.0;
 
 
@@ -144,7 +137,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 switch (teamPropPosition){
                     case LEFT:
                         spikePose = spikeLeftPose;
-                        finalScorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset, scoreCenter.getHeading());
+                        finalScorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset + 4, scoreCenter.getHeading());
                         break;
                     case CENTER:
                         spikePose = spikeCenterPose;
@@ -167,10 +160,10 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
 
                 Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
-                        .forward(10)
+                        .forward(6)
                         .build();
                 Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
-                        .back(10)
+                        .back(6)
                         .build();
 
                 robot.followTrajectory(toSpike);
@@ -198,33 +191,21 @@ public class KardiaAutoRedFar extends LinearOpMode {
             // Clears position from placed purple pixel.
             if (step == 3 && finalScorePose != null){
                 Pose2d currentPose = robot.getPoseEstimate();
-                toCenterSquare = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(new Pose2d(scanningPose.vec() ,currentPose.getHeading()))
-                        .build();
-
-                robot.followTrajectory(toCenterSquare);
-                spikeClear = robot.trajectoryBuilder(toCenterSquare.end())
-                        .lineToLinearHeading(new Pose2d(scanningPose.getX(), scanningPose.getY() - 12, Math.PI))
-                        .build();
-                robot.followTrajectory(spikeClear);
+                driveToPose(new Pose2d(afterPurple, currentPose.getHeading()));
                 step ++;
             }
 
             // Spline maneuver to begin approach.
             if (step == 4){
-                slider = robot.trajectoryBuilder(spikeClear.end())
-                        .splineToLinearHeading(scoreTrajPose1, Math.PI / 2)
-                        .splineToLinearHeading(scoreTrajPose2, Math.PI / 2)
-                        .splineToLinearHeading(scoreTrajPose3, 0)
-                        .splineToSplineHeading(scoreTrajPause, 0)
-                        .build();
-                robot.followTrajectory(slider);
+                driveToPose(preScoreTraj);
+                driveToPose(scoreTrajPose2);
                 step++;
             }
 
 
             // Wait for distance sensors to clear
             if (step == 5) {
+                lift.setLiftTarget(1.2, 1);
                 // Todo: what condition should go here
                 //if (distL and distR are far enough) {
                     step++;
@@ -233,17 +214,12 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
             // Drive to score board
             if (step == 6 && finalScorePose != null){
-                toScoreBoard = robot.trajectoryBuilder(slider.end())
-                        .lineToLinearHeading(finalScorePose)
-                        .build();
-
-                robot.followTrajectory(toScoreBoard);
+                driveToPose(finalScorePose);
                 step++;
             }
 
             // Score right (yellow)
             if (step == 7) {
-                lift.setLiftTarget(1.5, 1);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
@@ -255,20 +231,10 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
                 lift.setLiftTarget(0, 1);
 
-                step++;
-            }
-
-            // Drive to parking spot
-            if (step == 8){
-                Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
-                        .lineToLinearHeading(parking)
-                        .build();
-                robot.followTrajectory(park);
-
                 step = 99;
             }
 
-
+            robot.update();
             if (step == 99){
                 telemetryUpdate();
             }
@@ -343,5 +309,12 @@ public class KardiaAutoRedFar extends LinearOpMode {
         }
 
         return detectedSpike;
+    }
+
+    public void driveToPose(Pose2d toPose) {
+        Trajectory tempTrajectory = robot.trajectoryBuilder(robot.getPoseEstimate())
+                .lineToLinearHeading(toPose)
+                .build();
+        robot.followTrajectory(tempTrajectory);
     }
 }
