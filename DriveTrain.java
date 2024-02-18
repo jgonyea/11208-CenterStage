@@ -45,6 +45,12 @@ public class DriveTrain {
     // Power level set by dpad when overriding left stick.
     private final double DPAD_POWER = 1.0;
 
+    public enum ThrottleMode {
+        ALL_GEARS, SKIP_SECOND_GEAR
+    }
+
+    private ThrottleMode currentThrottleMode;
+
     private boolean isDownPressed;
     private boolean isUpPressed;
     private int gear = 2;
@@ -60,6 +66,8 @@ public class DriveTrain {
         this.distanceUnit = distanceUnit;
         this.averagerL = new ArraySmoother(SMOOTHING_LENGTH);
         this.averagerR = new ArraySmoother(SMOOTHING_LENGTH);
+
+        currentThrottleMode = ThrottleMode.ALL_GEARS;
     }
 
     // Move robot based on input from gamepad and distance sensors.
@@ -149,7 +157,14 @@ public class DriveTrain {
         if (gamepad.right_trigger > 0.5 && !isUpPressed) {
             isUpPressed = true;
             if (gear < 3) {
-                gear++;
+                switch (currentThrottleMode) {
+                    case ALL_GEARS:
+                        gear++;
+                        break;
+                    case SKIP_SECOND_GEAR:
+                        gear = 3;
+                        break;
+                }
             }
         }
         if (gamepad.right_trigger < 0.5) {
@@ -159,7 +174,14 @@ public class DriveTrain {
         if (gamepad.left_trigger > 0.5 && !isDownPressed) {
             isDownPressed = true;
             if (gear > 1) {
-                gear--;
+                switch (currentThrottleMode) {
+                    case ALL_GEARS:
+                        gear--;
+                        break;
+                    case SKIP_SECOND_GEAR:
+                        gear = 1;
+                        break;
+                }
             }
         }
         if (gamepad.left_trigger < 0.5) {
@@ -252,4 +274,11 @@ public class DriveTrain {
         return averagerR.getSmoothedValue();
     }
 
+    public void setCurrentThrottleMode(ThrottleMode throttleMode) {
+        this.currentThrottleMode = throttleMode;
+    }
+
+    public ThrottleMode getCurrentThrottleMode() {
+        return this.currentThrottleMode;
+    }
 }

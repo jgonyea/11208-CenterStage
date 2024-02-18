@@ -39,6 +39,8 @@ public class KardiaTeleOp extends OpMode {
     Effector effector = new Effector();
     Lift lift = new Lift();
 
+    private boolean is_start_pressed = false;
+
     @Override
     public void init() {
         telemetry.addData("Stage","Pre-Init");
@@ -73,6 +75,7 @@ public class KardiaTeleOp extends OpMode {
         // Class initializations.
         drivetrain.init(hardwareMap,
                         distL, distR, distUnit);
+        is_start_pressed = false;
         telemetry.addData("Drivetrain: ", "Initialized");
         drone.init(launcher);
         telemetry.addData("Drone Launcher: ", "Initialized");
@@ -93,6 +96,19 @@ public class KardiaTeleOp extends OpMode {
         lift.manualUpdate(gamepad2);
         effector.manualUpdate(gamepad2);
 
+        // Drivetrain throttle mode switch
+        if (gamepad1.start && !is_start_pressed) {
+            is_start_pressed = true;
+            if (drivetrain.getCurrentThrottleMode() == DriveTrain.ThrottleMode.ALL_GEARS) {
+                drivetrain.setCurrentThrottleMode(DriveTrain.ThrottleMode.SKIP_SECOND_GEAR);
+            } else {
+                drivetrain.setCurrentThrottleMode(DriveTrain.ThrottleMode.ALL_GEARS);
+            }
+        }
+        if (!gamepad1.start) {
+            is_start_pressed = false;
+        }
+
         // Debug.  Todo: Remove before competition.
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
@@ -100,5 +116,6 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("distL", distL.getDistance(distUnit));
         telemetry.addData("distR", distR.getDistance(distUnit));
         telemetry.addData("Throttle Gear: ", drivetrain.getGear());
+        telemetry.addData("Throttle Mode: ", drivetrain.getCurrentThrottleMode().name());
     }
 }
