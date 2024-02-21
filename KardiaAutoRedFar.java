@@ -255,7 +255,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
         lift.init(hardwareMap.get(DcMotor.class, "liftL"),
                   hardwareMap.get(DcMotor.class, "liftR"));
 
-        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
+        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight, null, null);
         telemetry.addData("End Effector: ", "Initialized");
         telemetry.update();
 

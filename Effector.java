@@ -82,6 +82,10 @@ public class Effector {
         // Move pincers to grip/ open positions.
         pincerLeft.setPosition(PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET);
         pincerRight.setPosition(PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET);
+        if (frontPincerLeft != null && frontPincerRight != null) {
+            frontPincerLeft.setPosition(FRONT_PINCERL_CLOSED_POSITION + FRONT_PINCER_OPEN_OFFSET);
+            frontPincerRight.setPosition(FRONT_PINCERR_CLOSED_POSITION - FRONT_PINCER_OPEN_OFFSET);
+        }
 
         // Move effector to initialized state.
         moveEffector(EffectorState.DRIVING);
@@ -102,6 +106,19 @@ public class Effector {
      * @param gp Gamepad input
      */
     public void manualUpdate(Gamepad gp) {
+        if (frontPincerLeft != null && frontPincerRight != null) {
+            if (gp.left_trigger == 1) {
+                frontPincerLeft.setPosition(FRONT_PINCERL_CLOSED_POSITION);
+            } else {
+                frontPincerLeft.setPosition(FRONT_PINCERL_CLOSED_POSITION + FRONT_PINCER_OPEN_OFFSET);
+            }
+            if (gp.right_trigger == 1) {
+                frontPincerRight.setPosition(FRONT_PINCERR_CLOSED_POSITION);
+            } else {
+                frontPincerRight.setPosition(FRONT_PINCERR_CLOSED_POSITION - FRONT_PINCER_OPEN_OFFSET);
+            }
+        }
+
         switch (currentState) {
             case DRIVING:
                 // Monitor for arm rotation buttons A & Y.
