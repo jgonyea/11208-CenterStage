@@ -20,6 +20,7 @@ public class Effector {
         SCORING,
         STAGED_LIFT,
         DRIVING,
+        SWEEP_FRONT,
         STAGED_INTAKE,
         INTAKE
     }
@@ -52,6 +53,7 @@ public class Effector {
 
     // Timings
     private final ElapsedTime timer = new ElapsedTime();
+    public final static long SWEEP_FRONT_TIME = 250;
     public final static long STAGED_INTAKE_TIME = 300;
     public final static long STAGED_LIFT_TIME = 500;
 
@@ -103,24 +105,11 @@ public class Effector {
      * @param gp Gamepad input
      */
     public void manualUpdate(Gamepad gp) {
-        if (frontPincerLeft != null && frontPincerRight != null) {
-            if (gp.left_trigger == 1) {
-                frontPincerLeft.setPosition(FRONT_PINCERL_CLOSED_POSITION);
-            } else {
-                frontPincerLeft.setPosition(FRONT_PINCERL_CLOSED_POSITION + FRONT_PINCER_OPEN_OFFSET);
-            }
-            if (gp.right_trigger == 1) {
-                frontPincerRight.setPosition(FRONT_PINCERR_CLOSED_POSITION);
-            } else {
-                frontPincerRight.setPosition(FRONT_PINCERR_CLOSED_POSITION - FRONT_PINCER_OPEN_OFFSET);
-            }
-        }
-
         switch (currentState) {
             case DRIVING:
                 // Monitor for arm rotation buttons A & Y.
                 if (gp.a && !gp.y && !is_a_pressed){
-                    setDesiredState(EffectorState.STAGED_INTAKE);
+                    setDesiredState(EffectorState.SWEEP_FRONT);
                     this.is_a_pressed = true;
                     this.is_y_pressed = false;
                     timer.reset();
@@ -135,6 +124,13 @@ public class Effector {
                 }
                 if (!gp.a) {
                     this.is_a_pressed = false;
+                }
+                break;
+
+            case SWEEP_FRONT:
+                if (timer.milliseconds() > SWEEP_FRONT_TIME) {
+                    setDesiredState(EffectorState.STAGED_INTAKE);
+                    timer.reset();
                 }
                 break;
 
@@ -159,6 +155,8 @@ public class Effector {
                 movePincers(gp, pincerLeft, pincerRight);
                 if (!gp.a) {
                     this.is_a_pressed = false;
+                    setFrontPincerPosition(frontPincerLeft, PINCER_STATE.RELEASE);
+                    setFrontPincerPosition(frontPincerRight, PINCER_STATE.RELEASE);
                     setDesiredState(EffectorState.STAGED_INTAKE);
                     timer.reset();
                     break;
@@ -221,6 +219,11 @@ public class Effector {
                 armRotatorRight.setPosition(ARM_DRIVING_POSITION);
                 handActuator.setPosition(HAND_DRIVING_POSITION);
                 wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                break;
+
+            case SWEEP_FRONT:
+                setFrontPincerPosition(frontPincerLeft, PINCER_STATE.GRIP);
+                setFrontPincerPosition(frontPincerRight, PINCER_STATE.GRIP);
                 break;
 
             case STAGED_INTAKE:
@@ -358,6 +361,8 @@ public class Effector {
                     nextPosition = EffectorState.STAGED_LIFT;
                 } else if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.INTAKE){
                     nextPosition = EffectorState.STAGED_INTAKE;
+                } else if (desiredState == EffectorState.SWEEP_FRONT) {
+                    nextPosition = EffectorState.SWEEP_FRONT;
                 }
                 break;
             case STAGED_INTAKE:
