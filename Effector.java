@@ -64,13 +64,15 @@ public class Effector {
     private boolean is_y_pressed = false;
 
     // Configure effector Servos.
-    public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handActuator, Servo pincerLeft, Servo pincerRight) {
+    public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handActuator, Servo pincerLeft, Servo pincerRight, Servo frontPincerLeft, Servo frontPincerRight) {
         this.armRotatorLeft = armRotatorLeft;
         this.armRotatorRight = armRotatorRight;
         this.wristRotator = wristRotator;
         this.handActuator = handActuator;
         this.pincerLeft = pincerLeft;
         this.pincerRight = pincerRight;
+        this.frontPincerLeft = frontPincerLeft;
+        this.frontPincerRight = frontPincerRight;
 
         armRotatorLeft.setDirection(Servo.Direction.FORWARD);
         armRotatorRight.setDirection(Servo.Direction.REVERSE);
