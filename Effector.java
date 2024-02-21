@@ -39,15 +39,12 @@ public class Effector {
     private final static double PINCERR_CLOSED_POSITION = 0.4461;
     private final static double PINCER_GRIP_OFFSET = 0.07;
 
-    // Todo: Code for front pincers.
-    // Left pincer goes more POSITIVE (+) to open.
-    // Right                 NEGATIVE (-)
     private final static double FRONT_PINCERL_CLOSED_POSITION = 0.1794;
     private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8467;
     private final static double FRONT_PINCER_OPEN_OFFSET = 0.6033;
     public enum PINCER_STATE{
         GRIP,
-        CLOSED
+        RELEASE
     }
 
     private final static double WRIST_INTAKE_POSITION = 1;
@@ -80,11 +77,11 @@ public class Effector {
         pincerRight.setDirection(Servo.Direction.FORWARD);
 
         // Move pincers to grip/ open positions.
-        pincerLeft.setPosition(PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET);
-        pincerRight.setPosition(PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET);
+        setPincerPosition(pincerLeft, PINCER_STATE.RELEASE);
+        setPincerPosition(pincerRight, PINCER_STATE.RELEASE);
         if (frontPincerLeft != null && frontPincerRight != null) {
-            frontPincerLeft.setPosition(FRONT_PINCERL_CLOSED_POSITION + FRONT_PINCER_OPEN_OFFSET);
-            frontPincerRight.setPosition(FRONT_PINCERR_CLOSED_POSITION - FRONT_PINCER_OPEN_OFFSET);
+            setFrontPincerPosition(frontPincerLeft, PINCER_STATE.RELEASE);
+            setFrontPincerPosition(frontPincerRight, PINCER_STATE.RELEASE);
         }
 
         // Move effector to initialized state.
@@ -262,21 +259,21 @@ public class Effector {
 
     private void movePincers(Gamepad gp, Servo pincerLeft, Servo pincerRight) {
         if (gp.left_bumper) {
-            setPincerPosition(pincerLeft, PINCER_STATE.CLOSED);
+            setPincerPosition(pincerLeft, PINCER_STATE.RELEASE);
         } else {
             setPincerPosition(pincerLeft, PINCER_STATE.GRIP);
         }
 
         if (gp.right_bumper) {
-            setPincerPosition(pincerRight, PINCER_STATE.CLOSED);
+            setPincerPosition(pincerRight, PINCER_STATE.RELEASE);
         } else {
             setPincerPosition(pincerRight, PINCER_STATE.GRIP);
         }
     }
 
     public void setPincerPosition(Servo pincer, PINCER_STATE desiredState){
-        double closedPosition = 0.0;
-        double openPosition = 0.0;
+        double closedPosition;
+        double openPosition;
         if (pincer == pincerLeft){
             closedPosition = PINCERL_CLOSED_POSITION;
             openPosition = PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET;
@@ -288,8 +285,29 @@ public class Effector {
             case GRIP:
                 pincer.setPosition(openPosition);
                 break;
-            case CLOSED:
+            case RELEASE:
                 pincer.setPosition(closedPosition);
+                break;
+        }
+
+    }
+
+    public void setFrontPincerPosition(Servo pincer, PINCER_STATE desiredState){
+        double closedPosition;
+        double openPosition;
+        if (pincer == frontPincerLeft){
+            closedPosition = FRONT_PINCERL_CLOSED_POSITION;
+            openPosition = closedPosition + FRONT_PINCER_OPEN_OFFSET;
+        } else {
+            closedPosition = FRONT_PINCERR_CLOSED_POSITION;
+            openPosition = closedPosition - FRONT_PINCER_OPEN_OFFSET;
+        }
+        switch (desiredState){
+            case GRIP:
+                pincer.setPosition(closedPosition);
+                break;
+            case RELEASE:
+                pincer.setPosition(openPosition);
                 break;
         }
 
