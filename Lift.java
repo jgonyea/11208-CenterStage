@@ -41,14 +41,14 @@ public class Lift {
     public void manualUpdate(Gamepad gp){
         // Calculate target position
         double targetPosition = 0;
-        if (gp.right_trigger > gp.left_trigger) {
+        if (gp.left_stick_y > 0) {
             targetPosition = MAX_TURNS;
-        } else if (gp.right_trigger < gp.left_trigger){
+        } else if (gp.left_stick_y < 0){
             targetPosition = 0;
         }
 
         // Set lift motors' target position and power
-        setLiftTarget(targetPosition, gp.right_trigger - gp.left_trigger);
+        setLiftTarget(targetPosition, Math.abs(gp.left_stick_y));
     }
 
     public void setLiftTarget(double targetTurns, double power) {
