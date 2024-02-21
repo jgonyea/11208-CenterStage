@@ -148,6 +148,8 @@ public class Effector {
                 break;
 
             case INTAKE:
+                setPincerPosition(pincerLeft, PincerState.GRIP);
+                setPincerPosition(pincerRight, PincerState.GRIP);
                 if (!gp.a && this.is_a_pressed) {
                     this.is_a_pressed = false;
                     setDesiredState(EffectorState.STAGED_INTAKE);
@@ -189,8 +191,8 @@ public class Effector {
                 break;
 
             case SCORING:
-                setPincerPosition(pincerLeft, bumperToPincer(!gp.left_bumper));
-                setPincerPosition(pincerRight, bumperToPincer(!gp.right_bumper));
+                setPincerPosition(pincerLeft, bumperToPincer(gp.left_bumper));
+                setPincerPosition(pincerRight, bumperToPincer(gp.right_bumper));
                 if (gp.a) {
                     setDesiredState(EffectorState.STAGED_LIFT);
                     pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
@@ -298,7 +300,7 @@ public class Effector {
     }
 
     private PincerState bumperToPincer(boolean bumper) {
-        return bumper ? PincerState.GRIP : PincerState.CLOSED;
+        return bumper ? PincerState.CLOSED : PincerState.GRIP;
     }
 
     /**
