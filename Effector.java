@@ -14,6 +14,8 @@ public class Effector {
     private Servo pincerLeft;
     private Servo pincerRight;
     private Servo wristRotator;
+    private Servo frontPincerLeft;
+    private Servo frontPincerRight;
     public enum EffectorState {
         SCORING,
         STAGED_LIFT,
@@ -36,6 +38,13 @@ public class Effector {
     private final static double PINCERL_CLOSED_POSITION = 0.5067;
     private final static double PINCERR_CLOSED_POSITION = 0.4461;
     private final static double PINCER_GRIP_OFFSET = 0.07;
+
+    // Todo: Code for front pincers.
+    // Left pincer goes more POSITIVE (+) to open.
+    // Right                 NEGATIVE (-)
+    private final static double FRONT_PINCERL_CLOSED_POSITION = 0.1794;
+    private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8467;
+    private final static double FRONT_PINCER_OPEN_OFFSET = 0.6033;
     public enum PINCER_STATE{
         GRIP,
         CLOSED
