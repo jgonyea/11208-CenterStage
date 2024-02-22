@@ -112,26 +112,28 @@ public class Effector {
             case DRIVING:
                 // Monitor for arm rotation buttons A & Y.
                 if (gp.a && !is_a_pressed){
-                    setDesiredState(EffectorState.SWEEP_FRONT);
+                    tempLeftPincerPosition = PincerState.RELEASE;
+                    tempRightPincerPosition = PincerState.RELEASE;
                     this.is_a_pressed = true;
                     this.is_y_pressed = false;
                     timer.reset();
+                    setDesiredState(EffectorState.SWEEP_FRONT);
                     break;
                 }
-                if (gp.b && !is_b_pressed){
-                    setDesiredState(EffectorState.SWEEP_FRONT);
+                if (gp.b && !is_b_pressed && (gp.left_bumper || gp.right_bumper)){
                     tempLeftPincerPosition = bumperToPincer(gp.left_bumper);
                     tempRightPincerPosition = bumperToPincer(gp.right_bumper);
                     this.is_b_pressed = true;
                     this.is_y_pressed = false;
                     timer.reset();
+                    setDesiredState(EffectorState.SWEEP_FRONT);
                     break;
                 }
                 if (gp.y && !gp.a) {
-                    setDesiredState(EffectorState.STAGED_LIFT);
                     this.is_a_pressed = false;
                     this.is_y_pressed = true;
                     timer.reset();
+                    setDesiredState(EffectorState.STAGED_LIFT);
                     break;
                 }
                 if (!gp.a) {
@@ -144,8 +146,8 @@ public class Effector {
 
             case SWEEP_FRONT:
                 if (timer.milliseconds() > SWEEP_FRONT_TIME) {
-                    setDesiredState(EffectorState.STAGED_INTAKE);
                     timer.reset();
+                    setDesiredState(EffectorState.STAGED_INTAKE);
                 }
                 break;
 
@@ -175,16 +177,16 @@ public class Effector {
                     this.is_a_pressed = false;
                     setFrontPincerPosition(frontPincerLeft, PincerState.RELEASE);
                     setFrontPincerPosition(frontPincerRight, PincerState.RELEASE);
-                    setDesiredState(EffectorState.STAGED_INTAKE);
                     timer.reset();
+                    setDesiredState(EffectorState.STAGED_INTAKE);
                     break;
                 }
                 if (!gp.b && this.is_b_pressed) {
                     this.is_b_pressed = false;
                     setFrontPincerPosition(frontPincerLeft, PincerState.RELEASE);
                     setFrontPincerPosition(frontPincerRight, PincerState.RELEASE);
-                    setDesiredState(EffectorState.STAGED_INTAKE);
                     timer.reset();
+                    setDesiredState(EffectorState.STAGED_INTAKE);
                     break;
                 }
                 break;
@@ -219,11 +221,11 @@ public class Effector {
                 setPincerPosition(pincerLeft, bumperToPincer(gp.left_bumper));
                 setPincerPosition(pincerRight, bumperToPincer(gp.right_bumper));
                 if (gp.a) {
-                    setDesiredState(EffectorState.STAGED_LIFT);
                     pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
                     pincerRight.setPosition(PINCERR_CLOSED_POSITION);
                     is_a_pressed = true;
                     timer.reset();
+                    setDesiredState(EffectorState.STAGED_LIFT);
                 }
                 break;
 
@@ -249,8 +251,8 @@ public class Effector {
                 break;
 
             case SWEEP_FRONT:
-                setFrontPincerPosition(frontPincerLeft, PincerState.GRIP);
-                setFrontPincerPosition(frontPincerRight, PincerState.GRIP);
+                setFrontPincerPosition(frontPincerLeft, opposite(tempLeftPincerPosition));
+                setFrontPincerPosition(frontPincerRight, opposite(tempRightPincerPosition));
                 break;
 
             case STAGED_INTAKE:
@@ -352,6 +354,10 @@ public class Effector {
 
     private PincerState bumperToPincer(boolean bumper) {
         return bumper ? PincerState.RELEASE : PincerState.GRIP;
+    }
+
+    private PincerState opposite(PincerState pincerState) {
+        return (pincerState == PincerState.GRIP) ? PincerState.RELEASE : PincerState.GRIP;
     }
 
     /**
