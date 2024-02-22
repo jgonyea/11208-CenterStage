@@ -94,6 +94,12 @@ public class KardiaTeleOp extends OpMode {
     }
 
     @Override
+    public void start() {
+        // Open front pincers
+        effector.moveEffector(Effector.EffectorState.DRIVING);
+    }
+
+    @Override
     public void loop() {
         drivetrain.moveRobot(gamepad1);
         drone.launch(gamepad1, gamepad2);

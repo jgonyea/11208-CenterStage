@@ -40,6 +40,8 @@ public class Effector {
     private final static double PINCERR_CLOSED_POSITION = 0.4461;
     private final static double PINCER_GRIP_OFFSET = 0.07;
 
+    private final static double FRONT_PINCERL_INIT_POSITION = 0.0944;
+    private final static double FRONT_PINCERR_INIT_POSITION = 0.9078;
     private final static double FRONT_PINCERL_CLOSED_POSITION = 0.1794;
     private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8467;
     private final static double FRONT_PINCER_OPEN_OFFSET = 0.6033;
@@ -81,16 +83,17 @@ public class Effector {
         pincerLeft.setDirection(Servo.Direction.FORWARD);
         pincerRight.setDirection(Servo.Direction.FORWARD);
 
+        // Move effector to initialized state.
+        moveEffector(EffectorState.DRIVING);
+
         // Move pincers to grip/ open positions.
         setPincerPosition(pincerLeft, PincerState.RELEASE);
         setPincerPosition(pincerRight, PincerState.RELEASE);
         if (frontPincerLeft != null && frontPincerRight != null) {
-            setFrontPincerPosition(frontPincerLeft, PincerState.RELEASE);
-            setFrontPincerPosition(frontPincerRight, PincerState.RELEASE);
+            // Move front pincers inwards to avoid sizing issues.
+            frontPincerLeft.setPosition(FRONT_PINCERL_INIT_POSITION);
+            frontPincerRight.setPosition(FRONT_PINCERR_INIT_POSITION);
         }
-
-        // Move effector to initialized state.
-        moveEffector(EffectorState.DRIVING);
     }
 
     /**
@@ -129,7 +132,7 @@ public class Effector {
                     setDesiredState(EffectorState.SWEEP_FRONT);
                     break;
                 }
-                if (gp.y && !gp.a) {
+                if (gp.y && !gp.a && !gp.b) {
                     this.is_a_pressed = false;
                     this.is_y_pressed = true;
                     timer.reset();
@@ -152,11 +155,7 @@ public class Effector {
                 break;
 
             case STAGED_INTAKE:
-                if (is_a_pressed) {
-                    setPincerPosition(pincerLeft, PincerState.RELEASE);
-                    setPincerPosition(pincerRight, PincerState.RELEASE);
-                }
-                if (is_b_pressed) {
+                if (is_a_pressed || is_b_pressed) {
                     setPincerPosition(pincerLeft, tempLeftPincerPosition);
                     setPincerPosition(pincerRight, tempRightPincerPosition);
                 }
@@ -173,18 +172,11 @@ public class Effector {
             case INTAKE:
                 setPincerPosition(pincerLeft, PincerState.GRIP);
                 setPincerPosition(pincerRight, PincerState.GRIP);
-                if (!gp.a && this.is_a_pressed) {
+                if ((!gp.a && this.is_a_pressed) || (!gp.b && this.is_b_pressed)) {
                     this.is_a_pressed = false;
-                    setFrontPincerPosition(frontPincerLeft, PincerState.RELEASE);
-                    setFrontPincerPosition(frontPincerRight, PincerState.RELEASE);
-                    timer.reset();
-                    setDesiredState(EffectorState.STAGED_INTAKE);
-                    break;
-                }
-                if (!gp.b && this.is_b_pressed) {
                     this.is_b_pressed = false;
-                    setFrontPincerPosition(frontPincerLeft, PincerState.RELEASE);
-                    setFrontPincerPosition(frontPincerRight, PincerState.RELEASE);
+                    setPincerPosition(frontPincerLeft, PincerState.RELEASE);
+                    setPincerPosition(frontPincerRight, PincerState.RELEASE);
                     timer.reset();
                     setDesiredState(EffectorState.STAGED_INTAKE);
                     break;
@@ -241,18 +233,20 @@ public class Effector {
      * Moves effector to new position.
      * @param newPosition New position.
      */
-    private void moveEffector(EffectorState newPosition) {
+    public void moveEffector(EffectorState newPosition) {
         switch (newPosition) {
             case DRIVING:
                 armRotatorLeft.setPosition(ARM_DRIVING_POSITION);
                 armRotatorRight.setPosition(ARM_DRIVING_POSITION);
                 handActuator.setPosition(HAND_DRIVING_POSITION);
                 wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                setPincerPosition(frontPincerLeft, PincerState.RELEASE);
+                setPincerPosition(frontPincerRight, PincerState.RELEASE);
                 break;
 
             case SWEEP_FRONT:
-                setFrontPincerPosition(frontPincerLeft, opposite(tempLeftPincerPosition));
-                setFrontPincerPosition(frontPincerRight, opposite(tempRightPincerPosition));
+                setPincerPosition(frontPincerLeft, opposite(tempLeftPincerPosition));
+                setPincerPosition(frontPincerRight, opposite(tempRightPincerPosition));
                 break;
 
             case STAGED_INTAKE:
@@ -290,45 +284,31 @@ public class Effector {
     }
 
     public void setPincerPosition(Servo pincer, PincerState desiredState){
-        double closedPosition;
-        double openPosition;
-        if (pincer == pincerLeft){
-            closedPosition = PINCERL_CLOSED_POSITION;
-            openPosition = PINCERL_CLOSED_POSITION + PINCER_GRIP_OFFSET;
+        double releasePosition;
+        double gripPosition;
+        if (pincer == pincerLeft) {
+            releasePosition = PINCERL_CLOSED_POSITION;
+            gripPosition = releasePosition + PINCER_GRIP_OFFSET;
+        } else if (pincer == pincerRight) {
+            releasePosition = PINCERR_CLOSED_POSITION;
+            gripPosition = releasePosition - PINCER_GRIP_OFFSET;
+        } else if (pincer == frontPincerLeft) {
+            gripPosition = FRONT_PINCERL_CLOSED_POSITION;
+            releasePosition = gripPosition + FRONT_PINCER_OPEN_OFFSET;
+        } else if (pincer == frontPincerRight) {
+            gripPosition = FRONT_PINCERR_CLOSED_POSITION;
+            releasePosition = gripPosition - FRONT_PINCER_OPEN_OFFSET;
         } else {
-            closedPosition = PINCERR_CLOSED_POSITION;
-            openPosition = PINCERR_CLOSED_POSITION - PINCER_GRIP_OFFSET;
+            throw new IllegalArgumentException(pincer + " is not a known pincer servo");
         }
         switch (desiredState){
             case GRIP:
-                pincer.setPosition(openPosition);
+                pincer.setPosition(gripPosition);
                 break;
             case RELEASE:
-                pincer.setPosition(closedPosition);
+                pincer.setPosition(releasePosition);
                 break;
         }
-
-    }
-
-    public void setFrontPincerPosition(Servo pincer, PincerState desiredState){
-        double closedPosition;
-        double openPosition;
-        if (pincer == frontPincerLeft){
-            closedPosition = FRONT_PINCERL_CLOSED_POSITION;
-            openPosition = closedPosition + FRONT_PINCER_OPEN_OFFSET;
-        } else {
-            closedPosition = FRONT_PINCERR_CLOSED_POSITION;
-            openPosition = closedPosition - FRONT_PINCER_OPEN_OFFSET;
-        }
-        switch (desiredState){
-            case GRIP:
-                pincer.setPosition(closedPosition);
-                break;
-            case RELEASE:
-                pincer.setPosition(openPosition);
-                break;
-        }
-
     }
 
     public EffectorState getCurrentState(){
@@ -357,7 +337,7 @@ public class Effector {
     }
 
     private PincerState opposite(PincerState pincerState) {
-        return (pincerState == PincerState.GRIP) ? PincerState.RELEASE : PincerState.GRIP;
+        return bumperToPincer(pincerState == PincerState.GRIP);
     }
 
     /**
@@ -386,6 +366,11 @@ public class Effector {
                     nextPosition = EffectorState.STAGED_INTAKE;
                 } else if (desiredState == EffectorState.SWEEP_FRONT) {
                     nextPosition = EffectorState.SWEEP_FRONT;
+                }
+                break;
+            case SWEEP_FRONT:
+                if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.INTAKE){
+                    nextPosition = EffectorState.STAGED_INTAKE;
                 }
                 break;
             case STAGED_INTAKE:
