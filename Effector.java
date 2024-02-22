@@ -233,7 +233,7 @@ public class Effector {
      * Moves effector to new position.
      * @param newPosition New position.
      */
-    public void moveEffector(EffectorState newPosition) {
+    private void moveEffector(EffectorState newPosition) {
         switch (newPosition) {
             case DRIVING:
                 armRotatorLeft.setPosition(ARM_DRIVING_POSITION);

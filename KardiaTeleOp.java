@@ -96,7 +96,8 @@ public class KardiaTeleOp extends OpMode {
     @Override
     public void start() {
         // Open front pincers
-        effector.moveEffector(Effector.EffectorState.DRIVING);
+        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
+        effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
     }
 
     @Override
