@@ -291,6 +291,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
     public void telemetryUpdate(){
         Pose2d pose = robot.getPoseEstimate();
+        PoseStorage.pose = pose;
         telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
         telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
         telemetry.addData("Current Pose h (rad): ", Math.floor(pose.getHeading() * 1000) / 1000);

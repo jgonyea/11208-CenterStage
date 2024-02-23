@@ -60,7 +60,7 @@ public class DriveTrain {
     public void init(HardwareMap hardwareMap,
                      DistanceSensor distanceL, DistanceSensor distanceR, DistanceUnit distanceUnit){
         this.centerStageDrive = new CenterStageDrive(hardwareMap);
-        centerStageDrive.setPoseEstimate(new Pose2d(0.0, 0.0, 0.0));
+        centerStageDrive.setPoseEstimate(PoseStorage.pose);
 
         this.distanceL = distanceL;
         this.distanceR = distanceR;
