@@ -91,6 +91,8 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
                 effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
+                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
 
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
@@ -252,6 +254,10 @@ public class KardiaAutoRedClose extends LinearOpMode {
             Pose2d pose = robot.getPoseEstimate();
             telemetryUpdate();
         }
+
+        // Close front pincers
+        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
+        effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
 
         // Pause and wait for driver to press Start.
         autonomousModeTimer.reset();
