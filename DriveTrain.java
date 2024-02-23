@@ -80,9 +80,9 @@ public class DriveTrain {
         double power;
 
         // Calculate values based on math code from https://www.youtube.com/@gavinford8924
-        double x = -gamepad.left_stick_x;
-        double y = gamepad.left_stick_y;
-        double turn = -gamepad.right_stick_x;
+        double x = gamepad.left_stick_x;
+        double y = -gamepad.left_stick_y;
+        double turn = gamepad.right_stick_x;
 
         // Get dpad state as one integer
         int dpadState = 0;
@@ -131,7 +131,7 @@ public class DriveTrain {
                 }
 
                 // Restrict y values between -1 and 1.
-                y = -Math.max(-1, Math.min(1, y));
+                y = Math.max(-1, Math.min(1, y));
 
             }
         }
@@ -223,7 +223,7 @@ public class DriveTrain {
 
         // Assign power to wheels.
         if (!centerStageDrive.isBusy()) {
-            centerStageDrive.setMotorPowers(-powerFrontLeft, -powerRearLeft, -powerRearRight, -powerFrontRight);
+            centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
         }
         centerStageDrive.update();
     }
@@ -244,7 +244,7 @@ public class DriveTrain {
 
         // A negative turn value is rotating the robot counter-clockwise.
         // A positive turn value is rotating the robot clockwise.
-        double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
+        double turn = (distanceRight - distanceLeft) / MAX_TURN_DIFFERENCE;
 
         // Limit turn.
         turn = Math.max(-1, Math.min(1, turn));
