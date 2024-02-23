@@ -1,8 +1,14 @@
 # FTC Center Stage 
 ## Kardia Robotics, 2023
 
-This repository contains the team code for Team 11208 (Kardia Robotics) 2023-2024 Center Stage Season.
+This branch may contain the RoadRunner code and autonomous OpMode(s) at some time in the future.
 
 ## Setup
-* Follow the setup instructions found at [First Tech Challenge's Github](https://github.com/FIRST-Tech-Challenge/FtcRobotController)
-* Clone this repo to the `org.firstinspires.ftc.teamcode` folder of the FTCRobotController project into a directory named `teamcode11208`
+* Create a new empty directory (for the whole "project")
+* Open a terminal or git bash
+* `cd` into that directory
+* Run the following command:
+  ```
+  git clone -b quickstart1 --depth 1 --single-branch https://github.com/acmerobotics/road-runner-quickstart.git . && rm -rf README.md .git* && cd TeamCode/src/main/java/org/firstinspires/ftc && rm -r teamcode && git clone -b auto https://github.com/jgonyea/11208-CenterStage.git teamcode && cd ../../../../../../..
+  ```
+* The directory is now an FTC SDK with RoadRunner installed, and with this branch cloned to teamcode.

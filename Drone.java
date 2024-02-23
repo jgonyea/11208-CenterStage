@@ -2,7 +2,7 @@
  * Controls launching of drone on the robot.
  */
 
-package org.firstinspires.ftc.teamcode.teamcode11208;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;

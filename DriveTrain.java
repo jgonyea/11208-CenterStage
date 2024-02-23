@@ -2,25 +2,23 @@
  *  Translates robot based on input from gamepad and distanceSensors.
  *  Original power calculation code from https://www.youtube.com/@gavinford8924
  */
-package org.firstinspires.ftc.teamcode.teamcode11208;
+package org.firstinspires.ftc.teamcode;
 
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 
 
 public class DriveTrain {
 
     private double throttle = 1;
 
-    private DcMotor frontLeft;
-    private DcMotor frontRight;
-    private DcMotor rearLeft;
-    private DcMotor rearRight;
+    private CenterStageDrive centerStageDrive;
 
     private DistanceSensor distanceL;
     private DistanceSensor distanceR;
@@ -44,17 +42,25 @@ public class DriveTrain {
     // Minimum speed for align and approach.
     private final double MINIMUM_POWER = 0.3;
 
+    // Power level set by dpad when overriding left stick.
+    private final double DPAD_POWER = 1.0;
+
+    public enum ThrottleMode {
+        ALL_GEARS, SKIP_SECOND_GEAR
+    }
+
+    private ThrottleMode currentThrottleMode;
+
     private boolean isDownPressed;
     private boolean isUpPressed;
-    private int gear = 3;
+    private boolean isYPressed;
+    private int gear = 2;
 
     // Configure drivetrain motors.
-    public void init(DcMotor frontLeft, DcMotor frontRight, DcMotor rearLeft, DcMotor rearRight,
+    public void init(HardwareMap hardwareMap,
                      DistanceSensor distanceL, DistanceSensor distanceR, DistanceUnit distanceUnit){
-        this.frontLeft = frontLeft;
-        this.frontRight = frontRight;
-        this.rearLeft = rearLeft;
-        this.rearRight = rearRight;
+        this.centerStageDrive = new CenterStageDrive(hardwareMap);
+        centerStageDrive.setPoseEstimate(new Pose2d(0.0, 0.0, 0.0));
 
         this.distanceL = distanceL;
         this.distanceR = distanceR;
@@ -62,20 +68,7 @@ public class DriveTrain {
         this.averagerL = new ArraySmoother(SMOOTHING_LENGTH);
         this.averagerR = new ArraySmoother(SMOOTHING_LENGTH);
 
-        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        rearLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        rearRight.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rearLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rearRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        currentThrottleMode = ThrottleMode.ALL_GEARS;
     }
 
     // Move robot based on input from gamepad and distance sensors.
@@ -83,8 +76,6 @@ public class DriveTrain {
 
         double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
-        //distanceLeft = averagerL.smooth(distanceLeft);
-        //distanceRight = averagerR.smooth(distanceRight);
         double theta;
         double power;
 
@@ -92,6 +83,35 @@ public class DriveTrain {
         double x = -gamepad.left_stick_x;
         double y = gamepad.left_stick_y;
         double turn = -gamepad.right_stick_x;
+
+        // Get dpad state as one integer
+        int dpadState = 0;
+        if (gamepad.dpad_up)
+            dpadState |= 0b0001;
+        if (gamepad.dpad_left)
+            dpadState |= 0b0010;
+        if (gamepad.dpad_down)
+            dpadState |= 0b0100;
+        if (gamepad.dpad_right)
+            dpadState |= 0b1000;
+
+        // Override left stick if dpad pressed
+        if (dpadState == 0b0001) {
+            x = 0.0;
+            y = -DPAD_POWER;
+        }
+        if (dpadState == 0b0010) {
+            x = DPAD_POWER;
+            y = 0.0;
+        }
+        if (dpadState == 0b0100) {
+            x = 0.0;
+            y = DPAD_POWER;
+        }
+        if (dpadState == 0b1000) {
+            x = -DPAD_POWER;
+            y = 0.0;
+        }
 
         // Automate turning for squaring up to scoring board.
         if (gamepad.left_bumper) {
@@ -109,11 +129,6 @@ public class DriveTrain {
                 if (y < 0) {
                     y = Math.min(y, -MINIMUM_POWER);
                 }
-
-                // Robot is too close. Move away.
-                //if (y > 0) {
-                //    y = Math.max(y, MINIMUM_POWER);
-                //
 
                 // Restrict y values between -1 and 1.
                 y = -Math.max(-1, Math.min(1, y));
@@ -143,7 +158,14 @@ public class DriveTrain {
         if (gamepad.right_trigger > 0.5 && !isUpPressed) {
             isUpPressed = true;
             if (gear < 3) {
-                gear++;
+                switch (currentThrottleMode) {
+                    case ALL_GEARS:
+                        gear++;
+                        break;
+                    case SKIP_SECOND_GEAR:
+                        gear = 3;
+                        break;
+                }
             }
         }
         if (gamepad.right_trigger < 0.5) {
@@ -153,7 +175,14 @@ public class DriveTrain {
         if (gamepad.left_trigger > 0.5 && !isDownPressed) {
             isDownPressed = true;
             if (gear > 1) {
-                gear--;
+                switch (currentThrottleMode) {
+                    case ALL_GEARS:
+                        gear--;
+                        break;
+                    case SKIP_SECOND_GEAR:
+                        gear = 1;
+                        break;
+                }
             }
         }
         if (gamepad.left_trigger < 0.5) {
@@ -176,12 +205,27 @@ public class DriveTrain {
             powerRearRight /= scale;
         }
 
-        // Assign power to wheels.
-        frontRight.setPower(powerFrontRight * throttle);
-        frontLeft.setPower(powerFrontLeft * throttle);
-        rearRight.setPower(powerRearRight * throttle);
-        rearLeft.setPower(powerRearLeft * throttle);
+        // Scale power by throttle.
+        powerFrontLeft  *= throttle;
+        powerFrontRight *= throttle;
+        powerRearLeft   *= throttle;
+        powerRearRight  *= throttle;
 
+        // Turn 180deg when Y pressed.
+        if (gamepad.y && !isYPressed) {
+            isYPressed = true;
+            // See https://learnroadrunner.com/advanced.html#_180%C2%B0-turn-direction
+            centerStageDrive.turnAsync(Math.PI + 1e-6);
+        }
+        if (!gamepad.y) {
+            isYPressed = false;
+        }
+
+        // Assign power to wheels.
+        if (!centerStageDrive.isBusy()) {
+            centerStageDrive.setMotorPowers(-powerFrontLeft, -powerRearLeft, -powerRearRight, -powerFrontRight);
+        }
+        centerStageDrive.update();
     }
 
     /**
@@ -243,4 +287,11 @@ public class DriveTrain {
         return averagerR.getSmoothedValue();
     }
 
+    public void setCurrentThrottleMode(ThrottleMode throttleMode) {
+        this.currentThrottleMode = throttleMode;
+    }
+
+    public ThrottleMode getCurrentThrottleMode() {
+        return this.currentThrottleMode;
+    }
 }

@@ -1,7 +1,7 @@
 /**
  * Driver-controlled routine.
  */
-package org.firstinspires.ftc.teamcode.teamcode11208;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -34,11 +34,12 @@ public class KardiaTeleOp extends OpMode {
     DcMotor liftMotorLeft;
     DcMotor liftMotorRight;
 
-
     DriveTrain drivetrain = new DriveTrain();
     Drone drone = new Drone();
     Effector effector = new Effector();
     Lift lift = new Lift();
+
+    private boolean is_start_pressed = false;
 
     @Override
     public void init() {
@@ -72,8 +73,9 @@ public class KardiaTeleOp extends OpMode {
         launcher = hardwareMap.get(Servo.class, "launcher");
 
         // Class initializations.
-        drivetrain.init(frontLeft, frontRight, rearLeft, rearRight,
+        drivetrain.init(hardwareMap,
                         distL, distR, distUnit);
+        is_start_pressed = false;
         telemetry.addData("Drivetrain: ", "Initialized");
         drone.init(launcher);
         telemetry.addData("Drone Launcher: ", "Initialized");
@@ -81,27 +83,39 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("End Effector: ", "Initialized");
         lift.init(liftMotorLeft, liftMotorRight);
         telemetry.addData("Lift: ", "Initialized");
-        
+
 
         telemetry.addData("Robot Initialization", "Complete");
-        telemetry.addData("Current Effector State: ", effector.getCurrentState());
+        telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
     }
 
     @Override
     public void loop() {
         drivetrain.moveRobot(gamepad1);
         drone.launch(gamepad1, gamepad2);
-        lift.moveLift(gamepad2);
-        effector.moveEffector(gamepad2);
+        lift.manualUpdate(gamepad2);
+        effector.manualUpdate(gamepad2);
+
+        // Drivetrain throttle mode switch
+        if (gamepad1.start && !is_start_pressed) {
+            is_start_pressed = true;
+            if (drivetrain.getCurrentThrottleMode() == DriveTrain.ThrottleMode.ALL_GEARS) {
+                drivetrain.setCurrentThrottleMode(DriveTrain.ThrottleMode.SKIP_SECOND_GEAR);
+            } else {
+                drivetrain.setCurrentThrottleMode(DriveTrain.ThrottleMode.ALL_GEARS);
+            }
+        }
+        if (!gamepad1.start) {
+            is_start_pressed = false;
+        }
 
         // Debug.  Todo: Remove before competition.
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());
-        telemetry.addData("Current Effector State: ", effector.getCurrentState());
+        telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
         telemetry.addData("distL", distL.getDistance(distUnit));
         telemetry.addData("distR", distR.getDistance(distUnit));
-        telemetry.addData("SmoothL: ", drivetrain.getSmoothDistL());
-        telemetry.addData("SmoothR: ", drivetrain.getSmoothDistR());
         telemetry.addData("Throttle Gear: ", drivetrain.getGear());
+        telemetry.addData("Throttle Mode: ", drivetrain.getCurrentThrottleMode().name());
     }
 }
