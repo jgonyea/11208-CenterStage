@@ -271,6 +271,11 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         distUnit = DistanceUnit.CM;
 
         robot.setPoseEstimate(startPose);
+
+        // Close front pincers
+        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
+        effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
+
         while (!isStarted()) {
             robot.update();
             telemetry.addData("Initialized: ", "Status - Waiting");
@@ -279,11 +284,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
             telemetryUpdate();
         }
 
-        // Close front pincers
-        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
-        effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
-
-        // Pause and wait for driver to press Start.
+        // Reset timer and begin autonomous.
         autonomousModeTimer.reset();
 
     }
