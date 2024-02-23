@@ -40,8 +40,6 @@ public class Effector {
     private final static double PINCERR_CLOSED_POSITION = 0.4461;
     private final static double PINCER_GRIP_OFFSET = 0.07;
 
-    private final static double FRONT_PINCERL_INIT_POSITION = 0.0944;
-    private final static double FRONT_PINCERR_INIT_POSITION = 0.9078;
     private final static double FRONT_PINCERL_CLOSED_POSITION = 0.1794;
     private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8467;
     private final static double FRONT_PINCER_OPEN_OFFSET = 0.6033;
@@ -89,11 +87,6 @@ public class Effector {
         // Move pincers to grip/ open positions.
         setPincerPosition(pincerLeft, PincerState.RELEASE);
         setPincerPosition(pincerRight, PincerState.RELEASE);
-        if (frontPincerLeft != null && frontPincerRight != null) {
-            // Move front pincers inwards to avoid sizing issues.
-            frontPincerLeft.setPosition(FRONT_PINCERL_INIT_POSITION);
-            frontPincerRight.setPosition(FRONT_PINCERR_INIT_POSITION);
-        }
     }
 
     /**

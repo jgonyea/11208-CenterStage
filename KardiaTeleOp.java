@@ -88,16 +88,12 @@ public class KardiaTeleOp extends OpMode {
         lift.init(liftMotorLeft, liftMotorRight);
         telemetry.addData("Lift: ", "Initialized");
 
-
-        telemetry.addData("Robot Initialization", "Complete");
-        telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
-    }
-
-    @Override
-    public void start() {
         // Open front pincers
         effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
         effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
+
+        telemetry.addData("Robot Initialization", "Complete");
+        telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
     }
 
     @Override

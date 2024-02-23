@@ -35,6 +35,8 @@ public class KardiaAutoBlueClose extends LinearOpMode {
     Servo pincerLeft;
     Servo pincerRight;
     Servo wristRotator;
+    Servo frontPincerLeft;
+    Servo frontPincerRight;
     Effector effector = new Effector();
 
     private enum spike {
@@ -253,12 +255,14 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         pincerLeft = hardwareMap.get(Servo.class, "pincerL");
         pincerRight = hardwareMap.get(Servo.class, "pincerR");
         wristRotator = hardwareMap.get(Servo.class, "wrist");
+        frontPincerLeft = hardwareMap.get(Servo.class, "frontpL");
+        frontPincerRight = hardwareMap.get(Servo.class, "frontpR");
 
         // Lift hardware mapping.
         lift.init(hardwareMap.get(DcMotor.class, "liftL"),
                   hardwareMap.get(DcMotor.class, "liftR"));
 
-        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight, null, null);
+        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight, frontPincerLeft, frontPincerRight);
         telemetry.addData("End Effector: ", "Initialized");
         telemetry.update();
 
