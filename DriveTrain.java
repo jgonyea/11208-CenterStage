@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
@@ -45,6 +46,12 @@ public class DriveTrain {
     // Power level set by dpad when overriding left stick.
     private final double DPAD_POWER = 1.0;
 
+    // Heading difference that should make motors turn at 100%.
+    private final double MAX_HEADING_DIFFERENCE = 1.5;
+
+    // Time to wait before re-enabling turn correction.
+    private final long MANUAL_TURN_DELAY = 150;
+
     public enum ThrottleMode {
         ALL_GEARS, SKIP_SECOND_GEAR
     }
@@ -55,6 +62,9 @@ public class DriveTrain {
     private boolean isUpPressed;
     private boolean isYPressed;
     private int gear = 2;
+
+    private double targetHeading;
+    private ElapsedTime manualTurnTimer = new ElapsedTime();
 
     // Configure drivetrain motors.
     public void init(HardwareMap hardwareMap,
@@ -69,6 +79,8 @@ public class DriveTrain {
         this.averagerR = new ArraySmoother(SMOOTHING_LENGTH);
 
         currentThrottleMode = ThrottleMode.ALL_GEARS;
+        targetHeading = centerStageDrive.getPoseEstimate().getHeading();
+        manualTurnTimer.reset();
     }
 
     // Move robot based on input from gamepad and distance sensors.
@@ -76,13 +88,53 @@ public class DriveTrain {
 
         double distanceLeft = this.distanceL.getDistance(this.distanceUnit);
         double distanceRight = this.distanceR.getDistance(this.distanceUnit);
+        double x = gamepad.left_stick_x;
+        double y = -gamepad.left_stick_y;
+        double turn = 0.0;
         double theta;
         double power;
 
-        // Calculate values based on math code from https://www.youtube.com/@gavinford8924
-        double x = gamepad.left_stick_x;
-        double y = -gamepad.left_stick_y;
-        double turn = gamepad.right_stick_x;
+        //create "gears" for the drive train
+        if (gamepad.right_trigger == 1 && !isUpPressed) {
+            isUpPressed = true;
+            if (gear < 3) {
+                switch (currentThrottleMode) {
+                    case ALL_GEARS:
+                        gear++;
+                        break;
+                    case SKIP_SECOND_GEAR:
+                        gear = 3;
+                        break;
+                }
+            }
+        }
+        if (gamepad.right_trigger < 1) {
+            isUpPressed = false;
+        }
+
+        if (gamepad.left_trigger == 1 && !isDownPressed) {
+            isDownPressed = true;
+            if (gear > 1) {
+                switch (currentThrottleMode) {
+                    case ALL_GEARS:
+                        gear--;
+                        break;
+                    case SKIP_SECOND_GEAR:
+                        gear = 1;
+                        break;
+                }
+            }
+        }
+        if (gamepad.left_trigger < 1) {
+            isDownPressed = false;
+        }
+
+        // Don't allow gearing to affect the auto-squaring / auto-approach.
+        if (!gamepad.left_bumper && !gamepad.right_bumper) {
+            throttle = gear / 3.0;
+        } else {
+            throttle = 0.7;
+        }
 
         // Get dpad state as one integer
         int dpadState = 0;
@@ -98,31 +150,31 @@ public class DriveTrain {
         // Override left stick if dpad pressed
         if (dpadState == 0b0001) {
             x = 0.0;
-            y = -DPAD_POWER;
+            y = DPAD_POWER;
         }
         if (dpadState == 0b0010) {
-            x = DPAD_POWER;
+            x = -DPAD_POWER;
             y = 0.0;
         }
         if (dpadState == 0b0100) {
             x = 0.0;
-            y = DPAD_POWER;
+            y = -DPAD_POWER;
         }
         if (dpadState == 0b1000) {
-            x = -DPAD_POWER;
+            x = DPAD_POWER;
             y = 0.0;
         }
 
         // Automate turning for squaring up to scoring board.
         if (gamepad.left_bumper) {
-            turn = calculateTurn(distanceLeft, distanceRight);
+            turn = calculateTurnPowerFromDistance(distanceLeft, distanceRight);
         }
 
         // Automate approaching the scoring board.
         if (gamepad.right_bumper) {
             // Approach board until OPTIMAL_DIST.
             double avgDist = (distanceLeft + distanceRight) / 2;
-            if (Math.abs(avgDist - OPTIMAL_DIST) > MINIMUM_DIST) {
+            if (absdiff(avgDist, OPTIMAL_DIST) > MINIMUM_DIST) {
                 y = (OPTIMAL_DIST - avgDist) / MAX_DRIVE_DIFFERENCE;
 
                 // Robot is too far. Back up.
@@ -131,9 +183,40 @@ public class DriveTrain {
                 }
 
                 // Restrict y values between -1 and 1.
-                y = Math.max(-1, Math.min(1, y));
+                y = constrain(y);
 
             }
+        }
+
+        // Only turn using right stick when bumpers not pressed.
+        if (!gamepad.left_bumper && !gamepad.right_bumper) {
+            turn = throttle * -gamepad.right_stick_x;
+        }
+
+        // Flip target heading when Y pressed.
+        if (gamepad.y && !isYPressed) {
+            isYPressed = true;
+            targetHeading = (targetHeading + Math.PI) % (Math.PI * 2);
+        }
+        if (!gamepad.y) {
+            isYPressed = false;
+        }
+
+        // "Snap" to nearest 90 degree heading when right stick pressed.
+        if (gamepad.right_stick_button && !isYPressed) {
+            targetHeading = nearest90(centerStageDrive.getPoseEstimate().getHeading());
+        }
+
+        // Reset timer to allow for manual turns.
+        if (turn != 0) {
+            manualTurnTimer.reset();
+        }
+
+        // Only approach target heading after a manual turn.
+        if (manualTurnTimer.milliseconds() < MANUAL_TURN_DELAY) {
+            targetHeading = centerStageDrive.getPoseEstimate().getHeading();
+        } else {
+            turn = calculateTurnPowerFromTarget(centerStageDrive.getPoseEstimate().getHeading(), targetHeading);
         }
 
         // Calculate values based on math code from https://www.youtube.com/@gavinford8924
@@ -149,60 +232,18 @@ public class DriveTrain {
         );
 
         // Set power levels for each wheel.
-        double powerFrontLeft = power * (cos / max) + turn;
-        double powerFrontRight = power * (sin / max) - turn;
-        double powerRearLeft = power * (sin / max) + turn;
-        double powerRearRight = power * (cos / max) - turn;
-
-        //create "gears" for the drive train
-        if (gamepad.right_trigger > 0.5 && !isUpPressed) {
-            isUpPressed = true;
-            if (gear < 3) {
-                switch (currentThrottleMode) {
-                    case ALL_GEARS:
-                        gear++;
-                        break;
-                    case SKIP_SECOND_GEAR:
-                        gear = 3;
-                        break;
-                }
-            }
-        }
-        if (gamepad.right_trigger < 0.5) {
-            isUpPressed = false;
-        }
-
-        if (gamepad.left_trigger > 0.5 && !isDownPressed) {
-            isDownPressed = true;
-            if (gear > 1) {
-                switch (currentThrottleMode) {
-                    case ALL_GEARS:
-                        gear--;
-                        break;
-                    case SKIP_SECOND_GEAR:
-                        gear = 1;
-                        break;
-                }
-            }
-        }
-        if (gamepad.left_trigger < 0.5) {
-            isDownPressed = false;
-        }
-
-        // Don't allow gearing to affect the auto-squaring/ auto-approach.
-        if (!gamepad.left_bumper && !gamepad.right_bumper) {
-            throttle = gear / 3.0;
-        } else {
-            throttle = 0.7;
-        }
+        double powerFrontLeft  = power * (cos / max);
+        double powerFrontRight = power * (sin / max);
+        double powerRearLeft   = power * (sin / max);
+        double powerRearRight  = power * (cos / max);
 
         // Rescale power if beyond maximum.
         double scale = power + Math.abs(turn);
         if (scale > 1) {
-            powerFrontLeft /= scale;
+            powerFrontLeft  /= scale;
             powerFrontRight /= scale;
-            powerRearLeft  /= scale;
-            powerRearRight /= scale;
+            powerRearLeft   /= scale;
+            powerRearRight  /= scale;
         }
 
         // Scale power by throttle.
@@ -211,20 +252,14 @@ public class DriveTrain {
         powerRearLeft   *= throttle;
         powerRearRight  *= throttle;
 
-        // Turn 180deg when Y pressed.
-        if (gamepad.y && !isYPressed) {
-            isYPressed = true;
-            // See https://learnroadrunner.com/advanced.html#_180%C2%B0-turn-direction
-            centerStageDrive.turnAsync(Math.PI + 1e-6);
-        }
-        if (!gamepad.y) {
-            isYPressed = false;
-        }
+        // Add turn.
+        powerFrontLeft  -= turn;
+        powerFrontRight += turn;
+        powerRearLeft   -= turn;
+        powerRearRight  += turn;
 
         // Assign power to wheels.
-        if (!centerStageDrive.isBusy()) {
-            centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
-        }
+        centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
         centerStageDrive.update();
     }
 
@@ -237,17 +272,17 @@ public class DriveTrain {
      * @return double
      *  Automated turn value.
      */
-    private double calculateTurn(double distanceLeft, double distanceRight){
-        if (Math.abs(distanceLeft - distanceRight) < MINIMUM_DIST) {
+    private double calculateTurnPowerFromDistance(double distanceLeft, double distanceRight){
+        if (absdiff(distanceLeft, distanceRight) < MINIMUM_DIST) {
             return 0;
         }
 
-        // A negative turn value is rotating the robot counter-clockwise.
-        // A positive turn value is rotating the robot clockwise.
-        double turn = (distanceRight - distanceLeft) / MAX_TURN_DIFFERENCE;
+        // A negative turn value is rotating the robot clockwise.
+        // A positive turn value is rotating the robot counter-clockwise.
+        double turn = (distanceLeft - distanceRight) / MAX_TURN_DIFFERENCE;
 
         // Limit turn.
-        turn = Math.max(-1, Math.min(1, turn));
+        turn = constrain(turn);
 
 
         if (turn > 0) {
@@ -258,6 +293,40 @@ public class DriveTrain {
         }
 
         return turn;
+    }
+
+    private double calculateTurnPowerFromTarget(double currentHeading, double targetHeading) {
+        double headingDifference = targetHeading - currentHeading;
+        if (headingDifference < -Math.PI) {
+            headingDifference += Math.PI * 2;
+        }
+        if (headingDifference > Math.PI) {
+            headingDifference -= Math.PI * 2;
+        }
+
+        return constrain(headingDifference / MAX_HEADING_DIFFERENCE);
+    }
+
+    private double nearest90(double heading) {
+        if (heading > Math.PI * 0.25 && heading <= Math.PI * 0.75)
+            return Math.PI * 0.5;
+        if (heading > Math.PI * 0.75 && heading <= Math.PI * 1.25)
+            return Math.PI;
+        if (heading > Math.PI * 1.25 && heading <= Math.PI * 1.75)
+            return Math.PI * 1.5;
+        if (heading > Math.PI * 1.75 || heading <= Math.PI * 0.25)
+            return 0;
+
+        // Failsafe in case heading is not in [0, 2pi).
+        return heading;
+    }
+
+    private double absdiff(double a, double b) {
+        return Math.abs(b - a);
+    }
+
+    private double constrain(double power) {
+        return Math.min(1, Math.max(-1, power));
     }
 
     /**
