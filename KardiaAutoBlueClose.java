@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -20,9 +21,16 @@ import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
 public class KardiaAutoBlueClose extends LinearOpMode {
 
     CenterStageDrive robot;
+
     DistanceSensor distL;
     DistanceSensor distR;
     DistanceUnit distUnit;
+
+    DigitalChannel leftSwitch;
+    DigitalChannel centerSwitch;
+    DigitalChannel rightSwitchI;
+    DigitalChannel rightSwitchII;
+    TripleSwitch rightSwitch;
 
     ElapsedTime autonomousModeTimer = new ElapsedTime();
     ElapsedTime stepTimer = new ElapsedTime();
@@ -57,6 +65,12 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         // Initialize and configure here.
         robot = new CenterStageDrive(hardwareMap);
 
+        leftSwitch = hardwareMap.get(DigitalChannel.class, "switch3");
+        centerSwitch = hardwareMap.get(DigitalChannel.class, "switch2");
+        rightSwitchI = hardwareMap.get(DigitalChannel.class, "parkSwitchI");
+        rightSwitchII = hardwareMap.get(DigitalChannel.class, "parkSwitchII");
+        rightSwitch = new TripleSwitch(rightSwitchI, rightSwitchII);
+
         // Positions/ poses.
         Pose2d startPose =       new Pose2d(12, 63, Math.PI * 1.5);
         Pose2d scanningPose =    new Pose2d(8.6, 43.5, 2.46);
@@ -67,7 +81,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         Pose2d spikeRightPose =  new Pose2d(5.8, 35.8, Math.PI);
 
         Pose2d scoreCenter =     new Pose2d(40, 36, Math.PI);
-        Pose2d parking =         new Pose2d(scoreCenter.getX() - 4, scoreCenter.getY() - 24, scoreCenter.getHeading());
+        Pose2d parking = null;
         Pose2d spikePose = null;
         Pose2d scorePose = null;
         Trajectory intermediateTraj = null;
@@ -80,6 +94,21 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         Trajectory beginningToScanning = robot.trajectoryBuilder(startPose, startPose.getHeading())
                 .splineToLinearHeading(scanningPose, startPose.getHeading())
                 .build();
+
+        // todo: Configure settings based on switches.
+        switch (rightSwitch.getState()) {
+            case UP:
+                parking = new Pose2d(scoreCenter.getX() - 4, scoreCenter.getY() + 25, scoreCenter.getHeading());
+                break;
+
+            case MIDDLE:
+                // Do not park.
+                break;
+
+            case DOWN:
+                parking = new Pose2d(scoreCenter.getX() - 4, scoreCenter.getY() - 25, scoreCenter.getHeading());
+                break;
+        }
 
         // Configure robot.
         autoInit(startPose);
@@ -307,8 +336,6 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         while (!isStarted()) {
             robot.update();
             telemetry.addData("Initialized: ", "Status - Waiting");
-
-            Pose2d pose = robot.getPoseEstimate();
             telemetryUpdate();
         }
 
