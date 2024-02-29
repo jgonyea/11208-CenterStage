@@ -186,27 +186,19 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                             .build();
                 }
 
-                Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
-                        .forward(5)
-                        .build();
-                Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
-                        .back(5)
-                        .build();
+                // Lower pixels to push prop.
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
 
                 robot.followTrajectory(toSpike);
-                robot.followTrajectory(clearPropForward);
-                robot.followTrajectory(clearPropBackward);
 
                 step++;
             }
 
             // Place left (purple)
-            if (step == 2){
-                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
+            if (step == 2) {
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
                 effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
-                sleep(Effector.STAGED_INTAKE_TIME * 2);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
@@ -226,8 +218,17 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 step++;
             }
 
+            // Raise effector arm
+            if (step == 4) {
+                effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
+                sleep(Effector.STAGED_LIFT_TIME);
+                effector.setDesiredState(Effector.EffectorState.SCORING);
+
+                step++;
+            }
+
             // Approach score board using distance sensors
-            if (step == 4){
+            if (step == 5) {
                 double minDiff;
                 do {
                     double distanceLeft = distL.getDistance(distUnit);
@@ -258,31 +259,28 @@ public class KardiaAutoBlueClose extends LinearOpMode {
             }
 
             // Score right (yellow) when path is clear
-            if (step == 5){
-                //lift.setLiftTarget(0, 1);
-                effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                sleep((long) Effector.STAGED_LIFT_TIME);
-                effector.setDesiredState(Effector.EffectorState.SCORING);
-                sleep(1000);
+            if (step == 6) {
                 effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
                 sleep(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                sleep((long) Effector.STAGED_LIFT_TIME);
+                sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
-                //lift.setLiftTarget(0,1);
-
 
                 step++;
             }
 
             // Drive to parking spot
-            if (step == 6){
-                Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
-                        .lineToLinearHeading(parking)
-                        .build();
-                robot.followTrajectory(park);
+            if (step == 7) {
+                if (parking == null) {
+                    step = 99;
+                } else {
+                    Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
+                            .lineToLinearHeading(parking)
+                            .build();
+                    robot.followTrajectory(park);
 
-                step = 99;
+                    step = 99;
+                }
             }
 
 
@@ -319,7 +317,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         robot.setPoseEstimate(startPose);
 
         // Pick up preload pixels.
-        sleep(1000);
+        sleep(700);
         effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
         effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
         effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
@@ -332,6 +330,8 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
         sleep(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setDesiredState(Effector.EffectorState.DRIVING);
 
         while (!isStarted()) {
             robot.update();

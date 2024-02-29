@@ -28,8 +28,8 @@ public class DriveTrain {
     private static final int SMOOTHING_LENGTH = 3;
 
     // Optimal distance for robot to be from scoring board.
-    public static final double LEFT_SENSOR_OPTIMAL_DIST = 3.1;
-    public static final double RIGHT_SENSOR_OPTIMAL_DIST = 4.15;
+    public static final double LEFT_SENSOR_OPTIMAL_DIST = 3.4;
+    public static final double RIGHT_SENSOR_OPTIMAL_DIST = 4.45;
 
     // Minimum speed for auto-align functions.
     public static final double MIN_ALIGN_POWER = 0.1;
@@ -66,7 +66,6 @@ public class DriveTrain {
 
     private boolean isDownPressed;
     private boolean isUpPressed;
-    private boolean isYPressed;
     private int gear = 2;
 
     // Configure drivetrain motors.
