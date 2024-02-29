@@ -14,7 +14,6 @@ public class Drone {
 
     private double positionLoaded = 0;
     private double positionFired = 0.3767;
-    private boolean launching = false;
 
     // Configures launcher servo.
     public void init(Servo launcherServo){
@@ -24,21 +23,15 @@ public class Drone {
 
     // Launches the drone.
     public void launch(Gamepad gamepad1, Gamepad gamepad2){
-        // Requires both player to press button "Y" and the same time.
-        if (gamepad1.x && gamepad2.x && !launching) {
-            launching = true;
+        // Requires both drivers to press X at the same time.
+        if (gamepad1.x && gamepad2.x) {
+            this.droneLauncher.setPosition(positionFired);
             this.timer.reset();
-        } else {
-            // Reset servo position.
-            this.droneLauncher.setPosition(positionLoaded);
         }
 
-        // Launch drone and toggle launching flag.
-        while (launching) {
-            this.droneLauncher.setPosition(positionFired);
-            if (this.timer.seconds() > 2) {
-                launching = false;
-            }
+        // Return servo to loading position.
+        if (this.timer.seconds() > 2) {
+            this.droneLauncher.setPosition(positionLoaded);
         }
     }
 }
