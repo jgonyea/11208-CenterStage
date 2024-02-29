@@ -55,6 +55,9 @@ public class DriveTrain {
     // Power level set by dpad when overriding left stick.
     private final double DPAD_POWER = 1.0;
 
+    private boolean currentYTurn = false;
+    private double YTurnTarget;
+
     public enum ThrottleMode {
         ALL_GEARS, SKIP_SECOND_GEAR
     }
@@ -138,6 +141,22 @@ public class DriveTrain {
             );
         }
 
+        // Faster 180 turn functionality.
+        if (gamepad.y && !currentYTurn) {
+            currentYTurn = true;
+            YTurnTarget = (centerStageDrive.getPoseEstimate().getHeading() + Math.PI)
+                    % (Math.PI * 2);
+        }
+        if (currentYTurn) {
+            turn = calculateTurnPowerFromTarget(
+                    centerStageDrive.getPoseEstimate().getHeading(), YTurnTarget);
+
+            // Cancel Y turn when target reached.
+            if (turn == 0.0 && !gamepad.y) {
+                currentYTurn = false;
+            }
+        }
+
         // Automate approaching the scoring board.
         if (gamepad.right_bumper) {
             // Approach board until OPTIMAL_DIST.
@@ -212,8 +231,8 @@ public class DriveTrain {
             isDownPressed = false;
         }
 
-        // Don't allow gearing to affect the auto-squaring/ auto-approach.
-        if (gamepad.left_bumper || gamepad.right_bumper || gamepad.right_stick_button) {
+        // Don't allow gearing to affect automatic motions.
+        if (gamepad.left_bumper || gamepad.right_bumper || gamepad.right_stick_button || currentYTurn) {
             throttle = 1;
         } else {
             throttle = gear / 3.0;
@@ -234,20 +253,8 @@ public class DriveTrain {
         powerRearLeft   *= throttle;
         powerRearRight  *= throttle;
 
-        // Turn 180deg when Y pressed.
-        if (gamepad.y && !isYPressed) {
-            isYPressed = true;
-            // See https://learnroadrunner.com/advanced.html#_180%C2%B0-turn-direction
-            centerStageDrive.turnAsync(Math.PI + 1e-6);
-        }
-        if (!gamepad.y) {
-            isYPressed = false;
-        }
-
         // Assign power to wheels.
-        if (!centerStageDrive.isBusy()) {
-            centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
-        }
+        centerStageDrive.setMotorPowers(powerFrontLeft, powerRearLeft, powerRearRight, powerFrontRight);
         centerStageDrive.update();
     }
 
