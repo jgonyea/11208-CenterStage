@@ -27,13 +27,13 @@ public class Effector {
 
     // Values based on empirical testing.
     private final static double ARM_DRIVING_POSITION = 0.400;
-    private final static double ARM_INTAKE_POSITION = 0.3683;
+    private final static double ARM_INTAKE_POSITION = 0.3711;
     private final static double ARM_SCORING_POSITION = 0.890;
     private final static double ARM_STAGED_INTAKE_POSITION = 0.410;
     private final static double ARM_STAGED_LIFT_POSITION = 0.450;
 
     private final static double HAND_DRIVING_POSITION = 0.72;
-    private final static double HAND_INTAKE_POSITION = 0.4294;
+    private final static double HAND_INTAKE_POSITION = 0.4;
     private final static double HAND_SCORING_POSITION = 0.258;
 
     private final static double PINCERL_CLOSED_POSITION = 0.5067;
@@ -53,7 +53,7 @@ public class Effector {
 
     // Timings
     private final ElapsedTime timer = new ElapsedTime();
-    public final static long SWEEP_FRONT_TIME = 250;
+    public final static long SWEEP_FRONT_TIME = 50;
     public final static long STAGED_INTAKE_TIME = 300;
     public final static long STAGED_LIFT_TIME = 500;
 
