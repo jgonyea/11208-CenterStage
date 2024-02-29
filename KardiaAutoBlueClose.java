@@ -45,7 +45,6 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         RIGHT
     }
 
-    private double minDistanceLHeading;
     private double minDistanceR = 10000;
     private double minDistanceRHeading;
 
@@ -67,12 +66,13 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         Pose2d spikeRightIntermediate = new Pose2d(11.6, 36, Math.PI);
         Pose2d spikeRightPose =  new Pose2d(5.8, 35.8, Math.PI);
 
-        Pose2d scoreCenter =     new Pose2d(46, 36, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(40, 36, Math.PI);
         Pose2d parking =         new Pose2d(scoreCenter.getX() - 4, scoreCenter.getY() - 24, scoreCenter.getHeading());
         Pose2d spikePose = null;
         Pose2d scorePose = null;
         Trajectory intermediateTraj = null;
         Trajectory toScoreBoard = null;
+        spike teamPropPosition = null;
         double scoreOffset = 6.0;
 
 
@@ -90,22 +90,6 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
             // Grab pixels from starting position.
             if (step == 0) {
-                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
-                effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
-
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setDesiredState(Effector.EffectorState.INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
-                effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
-                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
-                effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
-
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
             }
@@ -126,7 +110,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 }
 
                 // Converts teamPropPosition detected radian angle to integer.
-                spike teamPropPosition = calculateSpike(minDistanceRHeading);
+                teamPropPosition = calculateSpike(minDistanceRHeading);
                 telemetry.addData("Detected team prop", teamPropPosition.name());
                 telemetryUpdate();
 
@@ -213,8 +197,39 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 step++;
             }
 
-            // Score right (yellow) when path is clear
+            // Approach score board using distance sensors
             if (step == 4){
+                double minDiff;
+                do {
+                    double distanceLeft = distL.getDistance(distUnit);
+                    double distanceRight = distR.getDistance(distUnit);
+                    minDiff = Math.min(
+                            distanceLeft - DriveTrain.LEFT_SENSOR_OPTIMAL_DIST,
+                            distanceRight - DriveTrain.RIGHT_SENSOR_OPTIMAL_DIST
+                    );
+                    double y = -minDiff / DriveTrain.MAX_DRIVE_DIFFERENCE;
+
+                    // Robot is too far. Back up.
+                    if (y < 0) {
+                        y = Math.min(y, -DriveTrain.MINIMUM_POWER);
+                    }
+
+                    // Restrict y values to within MAX_APPROACH_POWER.
+                    y = Math.max(-DriveTrain.MAX_APPROACH_POWER, Math.min(DriveTrain.MAX_APPROACH_POWER, y));
+
+                    // Apply power to wheels.
+                    robot.setMotorPowers(y, y, y, y);
+                    robot.update();
+
+                } while (minDiff > DriveTrain.MINIMUM_DIST);
+
+                // Release manual wheel power.
+                robot.setMotorPowers(0, 0, 0, 0);
+                step=99;
+            }
+
+            // Score right (yellow) when path is clear
+            if (step == 5){
                 //lift.setLiftTarget(0, 1);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep((long) Effector.STAGED_LIFT_TIME);
@@ -232,7 +247,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
             }
 
             // Drive to parking spot
-            if (step == 5){
+            if (step == 6){
                 Trajectory park = robot.trajectoryBuilder(toScoreBoard.end())
                         .lineToLinearHeading(parking)
                         .build();
@@ -274,9 +289,20 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         distUnit = DistanceUnit.CM;
         robot.setPoseEstimate(startPose);
 
-        // Close front pincers
-        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
-        effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
+        // Pick up preload pixels.
+        sleep(1000);
+        effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+        effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
+        effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
+
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setDesiredState(Effector.EffectorState.INTAKE);
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
+        effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
+
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
 
         while (!isStarted()) {
             robot.update();

@@ -51,7 +51,7 @@ public class KardiaTeleOp extends OpMode {
         // Distance Sensors
         distL = hardwareMap.get(DistanceSensor.class, "distL");
         distR = hardwareMap.get(DistanceSensor.class, "distR");
-        distUnit = DistanceUnit.MM;
+        distUnit = DistanceUnit.CM;
 
         // Drivetrain hardware mapping.
         frontLeft = hardwareMap.get(DcMotor.class, "driveFL");

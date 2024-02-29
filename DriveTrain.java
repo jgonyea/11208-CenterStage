@@ -5,7 +5,6 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -28,19 +27,23 @@ public class DriveTrain {
     private static final int SMOOTHING_LENGTH = 3;
 
     // Optimal distance for robot to be from scoring board.
-    private final double OPTIMAL_DIST = 70;
+    public static final double LEFT_SENSOR_OPTIMAL_DIST = 3.1;
+    public static final double RIGHT_SENSOR_OPTIMAL_DIST = 4.15;
 
     // Minimum difference in distance sensors for auto-correction to engage.
-    private final double MINIMUM_DIST = 10;
+    public static final double MINIMUM_DIST = 1.0;
 
     // Difference between distance values that should set turn to 100%.
-    private final double MAX_TURN_DIFFERENCE = 200;
+    private final double MAX_TURN_DIFFERENCE = 20.0;
 
-    // Distance from OPTIMAL_DIST that should make motors run at 100% backwards.
-    private final double MAX_DRIVE_DIFFERENCE = 500;
+    // Difference from OPTIMAL_DIST that should make motors run at 100% backwards.
+    public static final double MAX_DRIVE_DIFFERENCE = 100.0;
+
+    // Power level that auto-approach should not exceed.
+    public static final double MAX_APPROACH_POWER = 0.4;
 
     // Minimum speed for align and approach.
-    private final double MINIMUM_POWER = 0.3;
+    public static final double MINIMUM_POWER = 0.07;
 
     // Power level set by dpad when overriding left stick.
     private final double DPAD_POWER = 1.0;
@@ -121,17 +124,20 @@ public class DriveTrain {
         // Automate approaching the scoring board.
         if (gamepad.right_bumper) {
             // Approach board until OPTIMAL_DIST.
-            double avgDist = (distanceLeft + distanceRight) / 2;
-            if (Math.abs(avgDist - OPTIMAL_DIST) > MINIMUM_DIST) {
-                y = (OPTIMAL_DIST - avgDist) / MAX_DRIVE_DIFFERENCE;
+            double minDiff = Math.min(
+                    distanceLeft - LEFT_SENSOR_OPTIMAL_DIST,
+                    distanceRight - RIGHT_SENSOR_OPTIMAL_DIST
+            );
+            if (minDiff > MINIMUM_DIST) {
+                y = -minDiff / MAX_DRIVE_DIFFERENCE;
 
                 // Robot is too far. Back up.
                 if (y < 0) {
                     y = Math.min(y, -MINIMUM_POWER);
                 }
 
-                // Restrict y values between -1 and 1.
-                y = Math.max(-1, Math.min(1, y));
+                // Restrict y values to within MAX_APPROACH_POWER.
+                y = Math.max(-MAX_APPROACH_POWER, Math.min(MAX_APPROACH_POWER, y));
 
             }
         }
@@ -193,7 +199,7 @@ public class DriveTrain {
         if (!gamepad.left_bumper && !gamepad.right_bumper) {
             throttle = gear / 3.0;
         } else {
-            throttle = 0.7;
+            throttle = 1;
         }
 
         // Rescale power if beyond maximum.
