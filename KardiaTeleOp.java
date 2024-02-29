@@ -122,6 +122,9 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
         telemetry.addData("distL", distL.getDistance(distUnit));
         telemetry.addData("distR", distR.getDistance(distUnit));
+        telemetry.addData("Robot x", drivetrain.getPoseEstimate().getX());
+        telemetry.addData("Robot y", drivetrain.getPoseEstimate().getY());
+        telemetry.addData("Robot h", drivetrain.getPoseEstimate().getHeading());
         telemetry.addData("Throttle Gear: ", drivetrain.getGear());
         telemetry.addData("Throttle Mode: ", drivetrain.getCurrentThrottleMode().name());
     }

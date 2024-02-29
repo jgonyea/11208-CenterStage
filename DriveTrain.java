@@ -5,6 +5,7 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -30,20 +31,26 @@ public class DriveTrain {
     public static final double LEFT_SENSOR_OPTIMAL_DIST = 3.1;
     public static final double RIGHT_SENSOR_OPTIMAL_DIST = 4.15;
 
-    // Minimum difference in distance sensors for auto-correction to engage.
-    public static final double MINIMUM_DIST = 1.0;
+    // Minimum speed for auto-align functions.
+    public static final double MIN_ALIGN_POWER = 0.1;
 
-    // Difference between distance values that should set turn to 100%.
-    private final double MAX_TURN_DIFFERENCE = 20.0;
+    // Minimum difference in heading for auto-correction to engage.
+    public static final double MIN_HEADING_DIFFERENCE = 0.01;
+
+    // Difference from target that sets power to 100%.
+    public static final double MAX_HEADING_DIFFERENCE = 1.2;
+
+    // Minimum speed for auto-approach.
+    public static final double MIN_APPROACH_POWER = 0.07;
+
+    // Minimum difference from OPTIMAL_DIST to engage auto-approach.
+    public static final double MIN_APPROACH_DIFFERENCE = 1.0;
 
     // Difference from OPTIMAL_DIST that should make motors run at 100% backwards.
-    public static final double MAX_DRIVE_DIFFERENCE = 100.0;
+    public static final double MAX_APPROACH_DIFFERENCE = 100.0;
 
     // Power level that auto-approach should not exceed.
     public static final double MAX_APPROACH_POWER = 0.4;
-
-    // Minimum speed for align and approach.
-    public static final double MINIMUM_POWER = 0.07;
 
     // Power level set by dpad when overriding left stick.
     private final double DPAD_POWER = 1.0;
@@ -117,8 +124,18 @@ public class DriveTrain {
         }
 
         // Automate turning for squaring up to scoring board.
-        if (gamepad.left_bumper) {
-            turn = calculateTurn(distanceLeft, distanceRight);
+        if (gamepad.left_bumper && !gamepad.right_stick_button) {
+            turn = calculateTurnPowerFromTarget(
+                    centerStageDrive.getPoseEstimate().getHeading(), Math.PI
+            );
+        }
+
+        // Square to nearest 90 degrees when right stick pressed.
+        if (gamepad.right_stick_button && !gamepad.left_bumper) {
+            turn = calculateTurnPowerFromTarget(
+                    centerStageDrive.getPoseEstimate().getHeading(),
+                    nearest90(centerStageDrive.getPoseEstimate().getHeading())
+            );
         }
 
         // Automate approaching the scoring board.
@@ -128,12 +145,12 @@ public class DriveTrain {
                     distanceLeft - LEFT_SENSOR_OPTIMAL_DIST,
                     distanceRight - RIGHT_SENSOR_OPTIMAL_DIST
             );
-            if (minDiff > MINIMUM_DIST) {
-                y = -minDiff / MAX_DRIVE_DIFFERENCE;
+            if (minDiff > MIN_APPROACH_DIFFERENCE) {
+                y = -minDiff / MAX_APPROACH_DIFFERENCE;
 
                 // Robot is too far. Back up.
                 if (y < 0) {
-                    y = Math.min(y, -MINIMUM_POWER);
+                    y = Math.min(y, -MIN_APPROACH_POWER);
                 }
 
                 // Restrict y values to within MAX_APPROACH_POWER.
@@ -196,10 +213,10 @@ public class DriveTrain {
         }
 
         // Don't allow gearing to affect the auto-squaring/ auto-approach.
-        if (!gamepad.left_bumper && !gamepad.right_bumper) {
-            throttle = gear / 3.0;
-        } else {
+        if (gamepad.left_bumper || gamepad.right_bumper || gamepad.right_stick_button) {
             throttle = 1;
+        } else {
+            throttle = gear / 3.0;
         }
 
         // Rescale power if beyond maximum.
@@ -235,35 +252,49 @@ public class DriveTrain {
     }
 
     /**
-     * Scales turning values to square robot based on distance sensor input.
-     * @param distanceLeft
-     *  Left distance.
-     * @param distanceRight
-     *  Right distance.
+     * Calculates turn power based on current and target heading.
+     * @param currentHeading
+     *  Current heading.
+     * @param targetHeading
+     *  Target heading.
      * @return double
      *  Automated turn value.
      */
-    private double calculateTurn(double distanceLeft, double distanceRight){
-        if (Math.abs(distanceLeft - distanceRight) < MINIMUM_DIST) {
+    private double calculateTurnPowerFromTarget(double currentHeading, double targetHeading) {
+        double headingDifference = targetHeading - currentHeading;
+        if (headingDifference < -Math.PI) {
+            headingDifference += Math.PI * 2;
+        }
+        if (headingDifference > Math.PI) {
+            headingDifference -= Math.PI * 2;
+        }
+
+        if (Math.abs(headingDifference) >= MIN_HEADING_DIFFERENCE) {
+            double turnPower = -headingDifference / MAX_HEADING_DIFFERENCE;
+            if (turnPower > 0 && turnPower < MIN_ALIGN_POWER) {
+                turnPower = MIN_ALIGN_POWER;
+            }
+            if (turnPower < 0 && turnPower > -MIN_ALIGN_POWER) {
+                turnPower = -MIN_ALIGN_POWER;
+            }
+            return Math.max(-1, Math.min(1, turnPower));
+        } else {
+            return 0.0;
+        }
+    }
+
+    private double nearest90(double heading) {
+        if (heading > Math.PI * 0.25 && heading <= Math.PI * 0.75)
+            return Math.PI * 0.5;
+        if (heading > Math.PI * 0.75 && heading <= Math.PI * 1.25)
+            return Math.PI;
+        if (heading > Math.PI * 1.25 && heading <= Math.PI * 1.75)
+            return Math.PI * 1.5;
+        if (heading > Math.PI * 1.75 || heading <= Math.PI * 0.25)
             return 0;
-        }
 
-        // A negative turn value is rotating the robot counter-clockwise.
-        // A positive turn value is rotating the robot clockwise.
-        double turn = (distanceRight - distanceLeft) / MAX_TURN_DIFFERENCE;
-
-        // Limit turn.
-        turn = Math.max(-1, Math.min(1, turn));
-
-
-        if (turn > 0) {
-            turn = Math.min(turn, MINIMUM_POWER);
-        }
-        if (turn < 0) {
-            turn = Math.max(turn, -MINIMUM_POWER);
-        }
-
-        return turn;
+        // Failsafe in case heading is not in [0, 2pi).
+        return heading;
     }
 
     /**
@@ -291,6 +322,10 @@ public class DriveTrain {
      */
     public double getSmoothDistR() {
         return averagerR.getSmoothedValue();
+    }
+
+    public Pose2d getPoseEstimate() {
+        return centerStageDrive.getPoseEstimate();
     }
 
     public void setCurrentThrottleMode(ThrottleMode throttleMode) {

@@ -207,11 +207,11 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                             distanceLeft - DriveTrain.LEFT_SENSOR_OPTIMAL_DIST,
                             distanceRight - DriveTrain.RIGHT_SENSOR_OPTIMAL_DIST
                     );
-                    double y = -minDiff / DriveTrain.MAX_DRIVE_DIFFERENCE;
+                    double y = -minDiff / DriveTrain.MAX_APPROACH_DIFFERENCE;
 
                     // Robot is too far. Back up.
                     if (y < 0) {
-                        y = Math.min(y, -DriveTrain.MINIMUM_POWER);
+                        y = Math.min(y, -DriveTrain.MIN_APPROACH_POWER);
                     }
 
                     // Restrict y values to within MAX_APPROACH_POWER.
@@ -221,11 +221,11 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                     robot.setMotorPowers(y, y, y, y);
                     robot.update();
 
-                } while (minDiff > DriveTrain.MINIMUM_DIST);
+                } while (minDiff > DriveTrain.MIN_APPROACH_DIFFERENCE);
 
                 // Release manual wheel power.
                 robot.setMotorPowers(0, 0, 0, 0);
-                step=99;
+                step++;
             }
 
             // Score right (yellow) when path is clear
