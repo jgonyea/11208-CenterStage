@@ -41,7 +41,7 @@ public class DriveTrain {
     public static final double MAX_HEADING_DIFFERENCE = 1.2;
 
     // Minimum speed for auto-approach.
-    public static final double MIN_APPROACH_POWER = 0.07;
+    public static final double MIN_APPROACH_POWER = 0.12;
 
     // Minimum difference from OPTIMAL_DIST to engage auto-approach.
     public static final double MIN_APPROACH_DIFFERENCE = 1.0;
@@ -196,7 +196,7 @@ public class DriveTrain {
         double powerRearRight = power * (cos / max) - turn;
 
         //create "gears" for the drive train
-        if (gamepad.right_trigger > 0.5 && !isUpPressed) {
+        if (gamepad.right_trigger == 1 && !isUpPressed) {
             isUpPressed = true;
             if (gear < 3) {
                 switch (currentThrottleMode) {
@@ -209,11 +209,11 @@ public class DriveTrain {
                 }
             }
         }
-        if (gamepad.right_trigger < 0.5) {
+        if (gamepad.right_trigger < 1) {
             isUpPressed = false;
         }
 
-        if (gamepad.left_trigger > 0.5 && !isDownPressed) {
+        if (gamepad.left_trigger == 1 && !isDownPressed) {
             isDownPressed = true;
             if (gear > 1) {
                 switch (currentThrottleMode) {
@@ -226,7 +226,7 @@ public class DriveTrain {
                 }
             }
         }
-        if (gamepad.left_trigger < 0.5) {
+        if (gamepad.left_trigger < 1) {
             isDownPressed = false;
         }
 
