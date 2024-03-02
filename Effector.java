@@ -87,6 +87,8 @@ public class Effector {
         // Move pincers to grip/ open positions.
         setPincerPosition(pincerLeft, PincerState.RELEASE);
         setPincerPosition(pincerRight, PincerState.RELEASE);
+        setPincerPosition(frontPincerLeft, PincerState.RELEASE);
+        setPincerPosition(frontPincerRight, PincerState.RELEASE);
     }
 
     /**
