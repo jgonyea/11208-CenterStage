@@ -6,29 +6,22 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 
 @Autonomous(name="RedFar-AlignLeft")
 public class KardiaAutoRedFar extends LinearOpMode {
 
     CenterStageDrive robot;
-    DistanceSensor distL;
-    DistanceSensor distR;
-    DistanceUnit distUnit;
-
-    ElapsedTime autonomousModeTimer = new ElapsedTime();
-    ElapsedTime stepTimer = new ElapsedTime();
-
-    Lift lift = new Lift();
 
     Servo armRotatorLeft;
     Servo armRotatorRight;
@@ -40,11 +33,27 @@ public class KardiaAutoRedFar extends LinearOpMode {
     Servo frontPincerRight;
     Effector effector = new Effector();
 
+    DcMotor liftLeft;
+    DcMotor liftRight;
+    Lift lift = new Lift();
+
+    DistanceSensor distL;
+    DistanceSensor distR;
+    DistanceUnit distUnit;
+
+    DigitalChannel leftSwitch;
+    DigitalChannel centerSwitch;
+    DigitalChannel rightSwitchI;
+    DigitalChannel rightSwitchII;
+    TripleSwitch rightSwitch;
+
     private enum spike {
         LEFT,
         CENTER,
         RIGHT
     }
+
+    private spike teamPropPosition;
 
     private double minDistanceR = 10000;
     private double minDistanceRHeading;
@@ -54,180 +63,198 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
 
     @Override
-    public void runOpMode(){
-        // Initialize and configure here.
+    public void runOpMode() {
+
+        // All numbers that require manual tuning.
+        Pose2d startPose =       new Pose2d(  -36.992, -59.703, Math.PI * 0.5);
+        Pose2d scanningPose =    new Pose2d(  -33.592, -40.203, 5.6);
+        Pose2d spikeLeftPose =   new Pose2d(  -33.992, -31.373, Math.PI);
+        Pose2d afterLeftPose =   new Pose2d(  -31.992, -31.373, Math.PI);
+        Pose2d spikeCenterPose = new Pose2d(  -34.202, -16.533, Math.PI * 1.5);
+        Pose2d spikeRightPose =  new Pose2d(  -31.792, -33.003, 0);
+        Vector2d afterPurple =   new Vector2d(-34.252, -12.303);
+        Pose2d preScoreTraj =    new Pose2d(  -33.252, -11.303, Math.PI);
+        Pose2d scoreTrajPose2 =  new Pose2d(   31.748, -12.303, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(   39.916, -34.124, Math.PI);
+        double scanningTurnAngle = Math.toRadians(-135);
+        double scoreOffset = 6.0;
+        double parkOffsetLeft  = 26.0;
+        double parkOffsetRight = 23.0;
+        double parkOffsetX = -3.0;
+        double parkBackup  = 10.0;
+
+        // Switch init must be done first, in case this is a dead auto.
+        leftSwitch = hardwareMap.get(DigitalChannel.class, "switch3");
+        centerSwitch = hardwareMap.get(DigitalChannel.class, "switch2");
+        rightSwitchI = hardwareMap.get(DigitalChannel.class, "parkSwitchI");
+        rightSwitchII = hardwareMap.get(DigitalChannel.class, "parkSwitchII");
+        rightSwitch = new TripleSwitch(rightSwitchI, rightSwitchII);
+
+        // Check whether this is a dead auto; if so, exit immediately.
+        if (leftSwitch.getState()) {
+            telemetry.addLine("WARNING! RUNNING DEAD AUTO!");
+            telemetry.addLine("Please check the left switch.");
+            telemetry.update();
+            PoseStorage.pose = startPose;
+
+            waitForStart();
+            return;
+        }
+
         robot = new CenterStageDrive(hardwareMap);
 
-        // Positions/ poses.
-        Pose2d startPose =       new Pose2d(-36, -63, Math.PI / 2);
-        Pose2d scanningPose =    new Pose2d(-32.6, -43.5, 5.60);
-        Pose2d spikeLeftPose =   new Pose2d(-33, -34.67, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(-36.21, -21.33, Math.PI * 1.5);
-        Pose2d spikeRightPose =  new Pose2d(-32.8, -37.8, 0);
+        // Precompute most trajectories.
+        TrajectorySequence beginningToScanning = lineTraj(startPose, scanningPose);
+        TrajectorySequence scanningTurn = turnTraj(scanningPose, scanningTurnAngle);
+        TrajectorySequence leftSpikeTraj = lineTraj(scanningTurn.end(), spikeLeftPose);
+        TrajectorySequence centerSpikeTraj = lineTraj(scanningTurn.end(), spikeCenterPose);
+        TrajectorySequence rightSpikeTraj = lineTraj(scanningTurn.end(), spikeRightPose);
+        TrajectorySequence leftSpikeToScoring = lineTraj(leftSpikeTraj.end(), afterLeftPose,
+                new Pose2d(afterPurple, spikeLeftPose.getHeading()),
+                preScoreTraj, scoreTrajPose2,
+                scoreCenter.plus(new Pose2d(0, scoreOffset, 0)));
+        TrajectorySequence centerSpikeToScoring = lineTraj(centerSpikeTraj.end(),
+                new Pose2d(afterPurple, spikeCenterPose.getHeading()),
+                preScoreTraj, scoreTrajPose2, scoreCenter);
+        TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeTraj.end(),
+                new Pose2d(afterPurple, spikeRightPose.getHeading()),
+                preScoreTraj, scoreTrajPose2,
+                scoreCenter.plus(new Pose2d(0, -scoreOffset, 0)));
 
+        // Allocate variables for on-the-fly trajectories.
+        TrajectorySequence selectedSpikeTraj = null;
+        TrajectorySequence selectedScoreTraj = null;
+        TrajectorySequence scoringToParking = null;
 
-        Vector2d afterPurple =   new Vector2d(-33.26, -15.6);
-        Pose2d preScoreTraj =    new Pose2d(-32.26, -14.6, Math.PI);
-        Pose2d scoreTrajPose2 =  new Pose2d(32.74, -15.6, Math.PI);
-        Pose2d scoreCenter =     new Pose2d(45.894, -37.109, Math.PI);
-        Pose2d spikePose = null;
-        Pose2d finalScorePose = null;
-        double scoreOffset = 6.0;
-
-
-        // Build trajectory to scanning position.
-        Trajectory beginningToScanning = robot.trajectoryBuilder(startPose, startPose.getHeading())
-                .splineToLinearHeading(scanningPose, startPose.getHeading())
-                .build();
-
-        // Configure robot.
+        // Configure robot and pick up pixels.
         autoInit(startPose);
-
 
         // Autonomous loop.
         while (opModeIsActive()) {
 
-            // Debug
-            if (step == 98){
-                robot.followTrajectory(beginningToScanning);
-                step = 99;
-            }
-
-            // Grab pixels from starting position.
+            // Move to scanning position and begin turn.
             if (step == 0) {
-                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
-                effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
-
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setDesiredState(Effector.EffectorState.INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
-                effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
-                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
-                effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
-
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setDesiredState(Effector.EffectorState.DRIVING);
+                robot.followTrajectorySequence(beginningToScanning);
+                robot.followTrajectorySequenceAsync(scanningTurn);
 
                 step++;
             }
 
-            // Locate team prop using distance sensor sweep and maneuver to proper location.
+            // Locate team prop using distance sensor sweep.
             if (step == 1) {
-                robot.followTrajectory(beginningToScanning);
-                robot.turnAsync(Math.toRadians(-135));
-                while (robot.isBusy()) {
-                    robot.update();
+                if (robot.isBusy()) {
                     Pose2d pose = robot.getPoseEstimate();
                     double distRReading = distR.getDistance(distUnit);
                     if (distRReading < minDistanceR) {
                         minDistanceR = distRReading;
                         minDistanceRHeading = pose.getHeading();
                     }
+                } else {
+                    // Calculate where the prop was detected.
+                    teamPropPosition = calculateSpike(minDistanceRHeading);
+                    telemetry.addData("Detected team prop", teamPropPosition.name());
                     telemetryUpdate();
+
+                    step++;
                 }
+            }
 
-                // Converts teamPropPosition detected radian angle to integer.
-                spike teamPropPosition = calculateSpike(minDistanceRHeading);
-                telemetry.addData("Detected team prop", teamPropPosition.name());
-                telemetryUpdate();
-
-                Pose2d currentPose = robot.getPoseEstimate();
-
-                // Set both spike and scoring positions.
-                switch (teamPropPosition){
+            // Select trajectories based on team prop position.
+            if (step == 2) {
+                switch (teamPropPosition) {
                     case LEFT:
-                        spikePose = spikeLeftPose;
-                        finalScorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() + scoreOffset + 4, scoreCenter.getHeading());
+                        selectedSpikeTraj = leftSpikeTraj;
+                        selectedScoreTraj = leftSpikeToScoring;
                         break;
+
                     case CENTER:
-                        spikePose = spikeCenterPose;
-                        finalScorePose = scoreCenter;
+                        selectedSpikeTraj = centerSpikeTraj;
+                        selectedScoreTraj = centerSpikeToScoring;
                         break;
+
                     case RIGHT:
-                        spikePose = spikeRightPose;
-                        finalScorePose = new Pose2d(scoreCenter.getX(), scoreCenter.getY() - scoreOffset, scoreCenter.getHeading());
+                        selectedSpikeTraj = rightSpikeTraj;
+                        selectedScoreTraj = rightSpikeToScoring;
                         break;
-                    default:
-                        spikePose = spikeCenterPose;
-                        finalScorePose = scoreCenter;
                 }
-
-                // Will move to center of spike and push team prop out of the way.
-                Trajectory toSpike;
-                toSpike = robot.trajectoryBuilder(currentPose)
-                        .lineToLinearHeading(spikePose)
-                        .build();
-
-
-                Trajectory clearPropForward = robot.trajectoryBuilder(toSpike.end())
-                        .forward(6)
-                        .build();
-                Trajectory clearPropBackward = robot.trajectoryBuilder(clearPropForward.end())
-                        .back(6)
-                        .build();
-
-                robot.followTrajectory(toSpike);
-                robot.followTrajectory(clearPropForward);
-                robot.followTrajectory(clearPropBackward);
 
                 step++;
             }
 
-            // Place left (purple)
-            if (step == 2){
+            // Lower pixels and move to correct spike mark.
+            if (step == 3) {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
+                robot.followTrajectorySequence(selectedSpikeTraj);
+
+                step++;
+            }
+
+            // Place purple pixel.
+            if (step == 4) {
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
-                sleep(Effector.STAGED_INTAKE_TIME * 2);
+                sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
-
-            }
-
-            // Clears position from placed purple pixel.
-            if (step == 3 && finalScorePose != null){
-                Pose2d currentPose = robot.getPoseEstimate();
-                driveToPose(new Pose2d(afterPurple, currentPose.getHeading()));
-                step ++;
-            }
-
-            // Spline maneuver to begin approach.
-            if (step == 4){
-                driveToPose(preScoreTraj);
-                driveToPose(scoreTrajPose2);
-                step++;
-            }
-
-
-            // Wait for distance sensors to clear
-            if (step == 5) {
-                lift.setLiftTarget(1.2, 1);
-                // Todo: what condition should go here
-                //if (distL and distR are far enough) {
-                    step++;
-                //}
             }
 
             // Drive to score board
-            if (step == 6 && finalScorePose != null){
-                driveToPose(finalScorePose);
+            if (step == 5) {
+                robot.followTrajectorySequenceAsync(scanningTurn);
+                robot.followTrajectorySequence(selectedScoreTraj);
+
                 step++;
             }
 
-            // Score right (yellow)
-            if (step == 7) {
+            // Prepare effector and raise lift.
+            if (step == 6) {
+                lift.setLiftTarget(0.55, 1);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
-                sleep(1000);
+
+                step++;
+            }
+
+            // Approach using distance sensors.
+            // Code copied from DriveTrain
+            // Todo: Write this only in DriveTrain, call it from Autos
+            if (step == 7) {
+                double distanceLeft = distL.getDistance(distUnit);
+                double distanceRight = distR.getDistance(distUnit);
+                double minDiff = Math.min(
+                        distanceLeft - DriveTrain.LEFT_SENSOR_OPTIMAL_DIST,
+                        distanceRight - DriveTrain.RIGHT_SENSOR_OPTIMAL_DIST
+                );
+
+                if (minDiff > DriveTrain.MIN_APPROACH_DIFFERENCE) {
+                    double y = -minDiff / DriveTrain.MAX_APPROACH_DIFFERENCE;
+
+                    // Robot is too far. Back up.
+                    if (y < 0) {
+                        y = Math.min(y, -DriveTrain.MIN_APPROACH_POWER);
+                    }
+
+                    // Restrict y values to within MAX_APPROACH_POWER.
+                    y = Math.max(-DriveTrain.MAX_APPROACH_POWER, Math.min(DriveTrain.MAX_APPROACH_POWER, y));
+
+                    // Apply power to wheels.
+                    robot.setMotorPowers(y, y, y, y);
+
+                } else {
+                    // Release manual wheel power.
+                    robot.setMotorPowers(0, 0, 0, 0);
+
+                    step++;
+                }
+            }
+
+            // Place yellow pixel.
+            if (step == 8) {
                 effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
                 sleep(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
@@ -235,17 +262,45 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
                 lift.setLiftTarget(0, 1);
 
+                step++;
+            }
+
+            // Park based on switch.
+            if (step == 9) {
+                Pose2d finalScoreCenter = new Pose2d(
+                        robot.getPoseEstimate().getX(), scoreCenter.getY(), scoreCenter.getHeading());
+                switch (rightSwitch.getState()) {
+                    case UP:
+                        scoringToParking = lineTraj(finalScoreCenter,
+                                finalScoreCenter.plus(new Pose2d(parkOffsetX, -parkOffsetRight, 0)),
+                                finalScoreCenter.plus(new Pose2d(parkOffsetX + parkBackup, -parkOffsetRight, 0)));
+                        break;
+                    case DOWN:
+                        scoringToParking = lineTraj(finalScoreCenter,
+                                finalScoreCenter.plus(new Pose2d(parkOffsetX, +parkOffsetLeft, 0)),
+                                finalScoreCenter.plus(new Pose2d(parkOffsetX + parkBackup, +parkOffsetLeft, 0)));
+                        break;
+                    case MIDDLE:
+                        // Leave scoringToParking null.
+                        break;
+                }
+
+                if (scoringToParking != null) {
+                    robot.followTrajectorySequence(scoringToParking);
+                }
+
+                // Finished autonomous routine.
                 step = 99;
             }
 
             robot.update();
-            if (step == 99){
-                telemetryUpdate();
-            }
+            telemetryUpdate();
         }
     }
 
-    private void autoInit(Pose2d startPose){
+    private void autoInit(Pose2d startPose) {
+        // Reset robot pose estimate.
+        robot.setPoseEstimate(startPose);
 
         // Effector hardware mapping.
         armRotatorLeft = hardwareMap.get(Servo.class, "armL");
@@ -258,40 +313,62 @@ public class KardiaAutoRedFar extends LinearOpMode {
         frontPincerRight = hardwareMap.get(Servo.class, "frontpR");
 
         // Lift hardware mapping.
-        lift.init(hardwareMap.get(DcMotor.class, "liftL"),
-                  hardwareMap.get(DcMotor.class, "liftR"));
+        liftLeft = hardwareMap.get(DcMotor.class, "liftL");
+        liftRight = hardwareMap.get(DcMotor.class, "liftR");
 
-        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight, frontPincerLeft, frontPincerRight);
-        telemetry.addData("End Effector: ", "Initialized");
-        telemetry.update();
-
-        // Distance Sensors
+        // Distance sensor hardware mapping.
         distL = hardwareMap.get(DistanceSensor.class, "distL");
         distR = hardwareMap.get(DistanceSensor.class, "distR");
         distUnit = DistanceUnit.CM;
 
-        robot.setPoseEstimate(startPose);
+        // Initialize effector and lift.
+        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight, frontPincerLeft, frontPincerRight);
+        lift.init(liftLeft, liftRight);
 
-        // Close front pincers
-        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
-        effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
+        telemetryUpdate();
 
-        while (!isStarted()) {
+        // Pick up preload pixels.
+        sleep(700);
+        effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+        effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
+        effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
+
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setDesiredState(Effector.EffectorState.INTAKE);
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
+        effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
+
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setDesiredState(Effector.EffectorState.DRIVING);
+
+        while (opModeInInit()) {
             robot.update();
-            telemetry.addData("Initialized: ", "Status - Waiting");
-
-            Pose2d pose = robot.getPoseEstimate();
             telemetryUpdate();
         }
-
-        // Reset timer and begin autonomous.
-        autonomousModeTimer.reset();
-
     }
 
-    public void telemetryUpdate(){
+    private TrajectorySequence lineTraj(Pose2d begin, Pose2d... morePoses) {
+        TrajectorySequenceBuilder builder = robot.trajectorySequenceBuilder(begin);
+        for (Pose2d pose : morePoses) {
+            builder.lineToLinearHeading(pose);
+        }
+
+        return builder.build();
+    }
+
+    private TrajectorySequence turnTraj(Pose2d begin, double angle) {
+        return robot.trajectorySequenceBuilder(begin)
+                .turn(angle)
+                .build();
+    }
+
+    private void telemetryUpdate() {
         Pose2d pose = robot.getPoseEstimate();
         PoseStorage.pose = pose;
+        telemetry.addData("step #", step);
         telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
         telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
         telemetry.addData("Current Pose h (rad): ", Math.floor(pose.getHeading() * 1000) / 1000);
@@ -304,29 +381,24 @@ public class KardiaAutoRedFar extends LinearOpMode {
         telemetry.update();
     }
 
-    private spike calculateSpike(double heading){
+    private spike calculateSpike(double heading) {
         spike detectedSpike = spike.CENTER;
 
         // Left Spike
         if (heading > 4.84) {
             detectedSpike = spike.LEFT;
         }
+
         // Center Spike
-        if (heading >= 4.19 && heading <= 4.84) {
-            detectedSpike = spike.CENTER;
-        }
+        // if (heading >= 4.19 && heading <= 4.84) {
+        // detectedSpike = spike.CENTER;
+        // }
+
         // Right Spike
-        if (heading < 4.19 ){
+        if (heading < 4.19) {
             detectedSpike = spike.RIGHT;
         }
 
         return detectedSpike;
-    }
-
-    public void driveToPose(Pose2d toPose) {
-        Trajectory tempTrajectory = robot.trajectoryBuilder(robot.getPoseEstimate())
-                .lineToLinearHeading(toPose)
-                .build();
-        robot.followTrajectory(tempTrajectory);
     }
 }
