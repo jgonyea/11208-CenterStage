@@ -40,6 +40,15 @@ This file contains the configuration from our robot's control hub. In case it is
 | 4 | Servo | `frontpL` |
 | 5 | Servo | `frontpR` |
 
+**Digital Devices**
+
+| Port | Attached | Name |
+| :-: | :- | :- |
+| 4 | Digital Device | `parkSwitchI` |
+| 5 | Digital Device | `parkSwitchII` |
+| 6 | Digital Device | `switch2` |
+| 7 | Digital Device | `switch3` |
+
 **I2C Bus 0**
 
 | Port | Attached | Name |
