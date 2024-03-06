@@ -205,12 +205,17 @@ public class Effector {
                 break;
 
             case SCORING:
-                setPincerPosition(pincerLeft, bumperToPincer(gp.left_bumper));
-                setPincerPosition(pincerRight, bumperToPincer(gp.right_bumper));
-                if (gp.a) {
+                if (!this.is_a_pressed) {
+                    setPincerPosition(pincerLeft, bumperToPincer(gp.left_bumper));
+                    setPincerPosition(pincerRight, bumperToPincer(gp.right_bumper));
+                }
+                if (gp.a && !this.is_a_pressed) {
                     pincerLeft.setPosition(PINCERL_CLOSED_POSITION);
                     pincerRight.setPosition(PINCERR_CLOSED_POSITION);
                     is_a_pressed = true;
+                }
+                if (!gp.a && this.is_a_pressed) {
+                    this.is_a_pressed = false;
                     timer.reset();
                     setDesiredState(EffectorState.STAGED_LIFT);
                 }
