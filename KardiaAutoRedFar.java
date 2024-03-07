@@ -197,6 +197,9 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
             // Place purple pixel.
             if (step == 4) {
+                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
+                sleep(Effector.SWEEP_FRONT_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
