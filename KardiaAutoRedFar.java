@@ -332,26 +332,35 @@ public class KardiaAutoRedFar extends LinearOpMode {
         telemetryUpdate();
 
         // Pick up preload pixels.
-        sleep(700);
+        sleep(1200);
+        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
+        effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
+        sleep(Effector.SWEEP_FRONT_TIME);
         effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
         effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
         effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
-
         sleep(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.INTAKE);
         sleep(Effector.STAGED_INTAKE_TIME);
         effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
         effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
-
         sleep(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
+        effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
         sleep(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.DRIVING);
+        sleep(Effector.STAGED_INTAKE_TIME);
+        effector.setDesiredState(Effector.EffectorState.INIT);
 
         while (opModeInInit()) {
             robot.update();
             telemetryUpdate();
         }
+
+        effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
+        sleep(Effector.STAGED_LIFT_TIME);
+        effector.setDesiredState(Effector.EffectorState.DRIVING);
     }
 
     private TrajectorySequence lineTraj(Pose2d begin, Pose2d... morePoses) {
