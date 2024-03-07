@@ -245,8 +245,6 @@ public class Effector {
                 armRotatorRight.setPosition(ARM_DRIVING_POSITION);
                 handActuator.setPosition(HAND_DRIVING_POSITION);
                 wristRotator.setPosition(WRIST_INTAKE_POSITION);
-                setPincerPosition(frontPincerLeft, PincerState.RELEASE);
-                setPincerPosition(frontPincerRight, PincerState.RELEASE);
                 break;
 
             case SWEEP_FRONT:
