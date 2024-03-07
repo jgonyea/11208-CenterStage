@@ -128,6 +128,9 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         // Configure robot and pick up pixels.
         autoInit(startPose);
 
+        // Reset pose again, in case robot was re-aligned.
+        robot.setPoseEstimate(startPose);
+
         // Autonomous loop.
         while (opModeIsActive()) {
 

@@ -68,14 +68,15 @@ public class KardiaAutoRedFar extends LinearOpMode {
         // All numbers that require manual tuning.
         Pose2d startPose =       new Pose2d(  -36.992, -59.703, Math.PI * 0.5);
         Pose2d scanningPose =    new Pose2d(  -33.592, -40.203, 5.6);
-        Pose2d spikeLeftPose =   new Pose2d(  -33.992, -31.373, Math.PI);
-        Pose2d afterLeftPose =   new Pose2d(  -31.992, -31.373, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(  -34.202, -16.533, Math.PI * 1.5);
-        Pose2d spikeRightPose =  new Pose2d(  -31.792, -33.003, 0);
-        Vector2d afterPurple =   new Vector2d(-34.252, -12.303);
-        Pose2d preScoreTraj =    new Pose2d(  -33.252, -11.303, Math.PI);
+        Pose2d spikeLeftPose =   new Pose2d(  -34.992, -31.373, Math.PI);
+        Pose2d afterLeftPose =   new Pose2d(  -30.992, -31.373, Math.PI);
+        Pose2d spikeCenterPose = new Pose2d(  -36.202, -16.533, Math.PI * 1.5);
+        Pose2d spikeRightPose =  new Pose2d(  -29.792, -33.003, 0);
+        Pose2d afterRightPose =  new Pose2d(  -36.202, -33.003, 0);
+        Vector2d afterPurple =   new Vector2d(-32.252, - 9.303);
+        Pose2d preScoreTraj =    new Pose2d(  -31.252, -11.303, Math.PI);
         Pose2d scoreTrajPose2 =  new Pose2d(   31.748, -12.303, Math.PI);
-        Pose2d scoreCenter =     new Pose2d(   39.916, -34.124, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(   39.916, -35.124, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
         double scoreOffset = 6.0;
         double parkOffsetLeft  = 26.0;
@@ -110,13 +111,12 @@ public class KardiaAutoRedFar extends LinearOpMode {
         TrajectorySequence centerSpikeTraj = lineTraj(scanningTurn.end(), spikeCenterPose);
         TrajectorySequence rightSpikeTraj = lineTraj(scanningTurn.end(), spikeRightPose);
         TrajectorySequence leftSpikeToScoring = lineTraj(leftSpikeTraj.end(), afterLeftPose,
-                new Pose2d(afterPurple, spikeLeftPose.getHeading()),
                 preScoreTraj, scoreTrajPose2,
                 scoreCenter.plus(new Pose2d(0, scoreOffset, 0)));
         TrajectorySequence centerSpikeToScoring = lineTraj(centerSpikeTraj.end(),
                 new Pose2d(afterPurple, spikeCenterPose.getHeading()),
                 preScoreTraj, scoreTrajPose2, scoreCenter);
-        TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeTraj.end(),
+        TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeTraj.end(), afterRightPose,
                 new Pose2d(afterPurple, spikeRightPose.getHeading()),
                 preScoreTraj, scoreTrajPose2,
                 scoreCenter.plus(new Pose2d(0, -scoreOffset, 0)));
@@ -128,6 +128,9 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
         // Configure robot and pick up pixels.
         autoInit(startPose);
+
+        // Reset pose again, in case robot was re-aligned.
+        robot.setPoseEstimate(startPose);
 
         // Autonomous loop.
         while (opModeIsActive()) {
