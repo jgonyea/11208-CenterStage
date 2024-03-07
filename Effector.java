@@ -22,10 +22,12 @@ public class Effector {
         DRIVING,
         SWEEP_FRONT,
         STAGED_INTAKE,
-        INTAKE
+        INTAKE,
+        INIT
     }
 
     // Values based on empirical testing.
+    private final static double ARM_INIT_POSITION = 0.4878;
     private final static double ARM_DRIVING_POSITION = 0.400;
     private final static double ARM_INTAKE_POSITION = 0.3711;
     private final static double ARM_SCORING_POSITION = 0.8806;
@@ -40,16 +42,18 @@ public class Effector {
     private final static double PINCERR_CLOSED_POSITION = 0.4461;
     private final static double PINCER_GRIP_OFFSET = 0.07;
 
-    private final static double FRONT_PINCERL_CLOSED_POSITION = 0.1794;
-    private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8467;
-    private final static double FRONT_PINCER_OPEN_OFFSET = 0.6033;
+    private final static double FRONT_PINCERL_INIT_POSITION = 0.0950;
+    private final static double FRONT_PINCERR_INIT_POSITION = 0.9022;
+    private final static double FRONT_PINCERL_CLOSED_POSITION = 0.1861;
+    private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8033;
+    private final static double FRONT_PINCER_OPEN_OFFSET = 0.4072;
     public enum PincerState {
         GRIP,
         RELEASE
     }
 
-    private final static double WRIST_INTAKE_POSITION = 1;
-    private final static double WRIST_SCORING_POSITION = 0.16;
+    private final static double WRIST_INTAKE_POSITION = 0.8889;
+    private final static double WRIST_SCORING_POSITION = 0.1733;
 
     // Timings
     private final ElapsedTime timer = new ElapsedTime();
@@ -276,6 +280,15 @@ public class Effector {
                 wristRotator.setPosition(WRIST_SCORING_POSITION);
                 break;
 
+            case INIT:
+                armRotatorLeft.setPosition(ARM_INIT_POSITION);
+                armRotatorRight.setPosition(ARM_INIT_POSITION);
+                handActuator.setPosition(HAND_DRIVING_POSITION);
+                wristRotator.setPosition(WRIST_SCORING_POSITION);
+                frontPincerLeft.setPosition(FRONT_PINCERL_INIT_POSITION);
+                frontPincerRight.setPosition(FRONT_PINCERR_INIT_POSITION);
+                break;
+
             default:
                 throw new IllegalStateException("Unexpected value: " + newPosition.name());
         }
@@ -346,47 +359,59 @@ public class Effector {
      */
     private EffectorState nextState() {
         EffectorState nextPosition = null;
-        switch (currentState){
-            case SCORING:
-                if (desiredState == EffectorState.DRIVING || desiredState == EffectorState.STAGED_LIFT){
-                    nextPosition = EffectorState.STAGED_LIFT;
-                }
-                break;
-            case STAGED_LIFT:
-                if (desiredState == EffectorState.SCORING){
-                    nextPosition = EffectorState.SCORING;
-                } else if (desiredState == EffectorState.DRIVING){
+        if (desiredState == EffectorState.INIT) {
+            nextPosition = EffectorState.INIT;
+        } else {
+            switch (currentState) {
+                case SCORING:
+                    if (desiredState == EffectorState.DRIVING || desiredState == EffectorState.STAGED_LIFT) {
+                        nextPosition = EffectorState.STAGED_LIFT;
+                    }
+                    break;
+                case STAGED_LIFT:
+                    if (desiredState == EffectorState.SCORING) {
+                        nextPosition = EffectorState.SCORING;
+                    } else if (desiredState == EffectorState.DRIVING) {
+                        nextPosition = EffectorState.DRIVING;
+                    }
+                    break;
+                case DRIVING:
+                    if (desiredState == EffectorState.STAGED_LIFT || desiredState == EffectorState.SCORING) {
+                        nextPosition = EffectorState.STAGED_LIFT;
+                    } else if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.INTAKE) {
+                        nextPosition = EffectorState.STAGED_INTAKE;
+                    } else if (desiredState == EffectorState.SWEEP_FRONT) {
+                        nextPosition = EffectorState.SWEEP_FRONT;
+                    }
+                    break;
+                case SWEEP_FRONT:
+                    if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.INTAKE) {
+                        nextPosition = EffectorState.STAGED_INTAKE;
+                    }
+                    break;
+                case STAGED_INTAKE:
+                    if (desiredState == EffectorState.DRIVING) {
+                        nextPosition = EffectorState.DRIVING;
+                    } else if (desiredState == EffectorState.INTAKE) {
+                        nextPosition = EffectorState.INTAKE;
+                    }
+                    break;
+                case INTAKE:
+                    if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.DRIVING) {
+                        nextPosition = EffectorState.STAGED_INTAKE;
+                    }
+                    break;
+                case INIT:
+                    if (desiredState == EffectorState.STAGED_LIFT) {
+                        nextPosition = EffectorState.STAGED_LIFT;
+                    }
+                    if (desiredState == EffectorState.DRIVING) {
+                        nextPosition = EffectorState.DRIVING;
+                    }
+                    break;
+                default:
                     nextPosition = EffectorState.DRIVING;
-                }
-                break;
-            case DRIVING:
-                if (desiredState == EffectorState.STAGED_LIFT || desiredState == EffectorState.SCORING){
-                    nextPosition = EffectorState.STAGED_LIFT;
-                } else if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.INTAKE){
-                    nextPosition = EffectorState.STAGED_INTAKE;
-                } else if (desiredState == EffectorState.SWEEP_FRONT) {
-                    nextPosition = EffectorState.SWEEP_FRONT;
-                }
-                break;
-            case SWEEP_FRONT:
-                if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.INTAKE){
-                    nextPosition = EffectorState.STAGED_INTAKE;
-                }
-                break;
-            case STAGED_INTAKE:
-                if (desiredState == EffectorState.DRIVING){
-                    nextPosition = EffectorState.DRIVING;
-                } else if (desiredState == EffectorState.INTAKE){
-                    nextPosition = EffectorState.INTAKE;
-                }
-                break;
-            case INTAKE:
-                if (desiredState == EffectorState.STAGED_INTAKE || desiredState == EffectorState.DRIVING){
-                    nextPosition = EffectorState.STAGED_INTAKE;
-                }
-                break;
-            default:
-                nextPosition = EffectorState.DRIVING;
+            }
         }
 
         return nextPosition;
