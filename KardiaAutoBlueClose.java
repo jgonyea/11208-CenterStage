@@ -368,7 +368,9 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
     private void telemetryUpdate() {
         Pose2d pose = robot.getPoseEstimate();
-        PoseStorage.setPose(pose);
+        // Todo: Fix pose "jump" when OpMode stopped.
+        if (!isStopRequested()) PoseStorage.setPose(pose);
+
         telemetry.addData("step #", step);
         telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
         telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
