@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-public class PoseStorage {
+@Autonomous(name="View stored pose")
+public class PoseStorage extends LinearOpMode {
     private static double x = 0.0;
     private static double y = 0.0;
     private static double h = 0.0;
@@ -15,5 +18,17 @@ public class PoseStorage {
 
     public static Pose2d getPose() {
         return new Pose2d(x, y, h);
+    }
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        telemetry.addData("x", x);
+        telemetry.addData("y", y);
+        telemetry.addData("h", h);
+        telemetry.addLine();
+        telemetry.addData("Pose", getPose());
+        telemetry.update();
+
+        waitForStart();
     }
 }
