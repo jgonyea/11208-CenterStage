@@ -94,7 +94,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
             telemetry.addLine("WARNING! RUNNING DEAD AUTO!");
             telemetry.addLine("Please check the left switch.");
             telemetry.update();
-            PoseStorage.pose = startPose;
+            PoseStorage.setPose(startPose);
 
             waitForStart();
             return;
@@ -133,7 +133,9 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
             // Move to scanning position and begin turn.
             if (step == 0) {
-                robot.followTrajectorySequence(beginningToScanning);
+                robot.followTrajectorySequenceAsync(beginningToScanning);
+                blockDuringMotion();
+
                 robot.followTrajectorySequenceAsync(scanningTurn);
 
                 step++;
@@ -183,7 +185,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
             // Lower pixels and move to correct spike mark.
             if (step == 3) {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                robot.followTrajectorySequence(selectedSpikeTraj);
+                robot.followTrajectorySequenceAsync(selectedSpikeTraj);
+                blockDuringMotion();
 
                 step++;
             }
@@ -203,8 +206,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
             // Drive to score board
             if (step == 5) {
-                robot.followTrajectorySequenceAsync(scanningTurn);
-                robot.followTrajectorySequence(selectedScoreTraj);
+                robot.followTrajectorySequenceAsync(selectedScoreTraj);
+                blockDuringMotion();
 
                 step++;
             }
@@ -285,7 +288,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 }
 
                 if (scoringToParking != null) {
-                    robot.followTrajectorySequence(scoringToParking);
+                    robot.followTrajectorySequenceAsync(scoringToParking);
+                    blockDuringMotion();
                 }
 
                 // Finished autonomous routine.
@@ -366,7 +370,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
     private void telemetryUpdate() {
         Pose2d pose = robot.getPoseEstimate();
-        PoseStorage.pose = pose;
+        PoseStorage.setPose(pose);
         telemetry.addData("step #", step);
         telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
         telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
@@ -399,5 +403,12 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         }
 
         return detectedSpike;
+    }
+
+    private void blockDuringMotion() {
+        while (opModeIsActive() && robot.isBusy()) {
+            robot.update();
+            telemetryUpdate();
+        }
     }
 }
