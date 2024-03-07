@@ -28,6 +28,8 @@ public class KardiaTeleOp extends OpMode {
     Servo pincerLeft;
     Servo pincerRight;
     Servo wristRotator;
+    Servo frontPincerLeft;
+    Servo frontPincerRight;
 
     Servo launcher;
 
@@ -64,6 +66,8 @@ public class KardiaTeleOp extends OpMode {
         pincerLeft = hardwareMap.get(Servo.class, "pincerL");
         pincerRight = hardwareMap.get(Servo.class, "pincerR");
         wristRotator = hardwareMap.get(Servo.class, "wrist");
+        frontPincerLeft = hardwareMap.get(Servo.class, "frontpL");
+        frontPincerRight = hardwareMap.get(Servo.class, "frontpR");
 
         // Lift hardware mapping.
         liftMotorLeft = hardwareMap.get(DcMotor.class, "liftL");
@@ -79,7 +83,7 @@ public class KardiaTeleOp extends OpMode {
         telemetry.addData("Drivetrain: ", "Initialized");
         drone.init(launcher);
         telemetry.addData("Drone Launcher: ", "Initialized");
-        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
+        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight, frontPincerLeft, frontPincerRight);
         telemetry.addData("End Effector: ", "Initialized");
         lift.init(liftMotorLeft, liftMotorRight);
         telemetry.addData("Lift: ", "Initialized");
@@ -87,6 +91,13 @@ public class KardiaTeleOp extends OpMode {
 
         telemetry.addData("Robot Initialization", "Complete");
         telemetry.addData("Current Effector State: ", effector.getCurrentState().name());
+    }
+
+    @Override
+    public void start() {
+        // Open front pincers
+        effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
+        effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
     }
 
     @Override

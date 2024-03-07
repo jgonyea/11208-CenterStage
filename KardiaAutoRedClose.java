@@ -80,15 +80,15 @@ public class KardiaAutoRedClose extends LinearOpMode {
             // Grab pixels from starting position.
             if (step == 0) {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.CLOSED);
-                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
 
 
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
-                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.GRIP);
-                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.GRIP);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
 
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
@@ -160,7 +160,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
-                effector.setPincerPosition(pincerLeft, Effector.PINCER_STATE.CLOSED);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
                 sleep(Effector.STAGED_INTAKE_TIME * 2);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
                 sleep(Effector.STAGED_INTAKE_TIME);
@@ -188,7 +188,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 sleep((long) Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
                 sleep(1000);
-                effector.setPincerPosition(pincerRight, Effector.PINCER_STATE.CLOSED);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
                 sleep(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep((long) Effector.STAGED_LIFT_TIME);
@@ -232,7 +232,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
         lift.init(hardwareMap.get(DcMotor.class, "liftL"),
                   hardwareMap.get(DcMotor.class, "liftR"));
 
-        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight);
+        effector.init(armRotatorLeft, armRotatorRight, wristRotator, handActuator, pincerLeft, pincerRight, null, null);
         telemetry.addData("End Effector: ", "Initialized");
         telemetry.update();
 
