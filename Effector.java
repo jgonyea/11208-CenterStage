@@ -34,6 +34,7 @@ public class Effector {
     private final static double ARM_STAGED_INTAKE_POSITION = 0.410;
     private final static double ARM_STAGED_LIFT_POSITION = 0.450;
 
+    private final static double HAND_INIT_POSITION = 0.6172;
     private final static double HAND_DRIVING_POSITION = 0.72;
     private final static double HAND_INTAKE_POSITION = 0.4;
     private final static double HAND_SCORING_POSITION = 0.26;
@@ -283,7 +284,7 @@ public class Effector {
             case INIT:
                 armRotatorLeft.setPosition(ARM_INIT_POSITION);
                 armRotatorRight.setPosition(ARM_INIT_POSITION);
-                handActuator.setPosition(HAND_DRIVING_POSITION);
+                handActuator.setPosition(HAND_INIT_POSITION);
                 wristRotator.setPosition(WRIST_SCORING_POSITION);
                 frontPincerLeft.setPosition(FRONT_PINCERL_INIT_POSITION);
                 frontPincerRight.setPosition(FRONT_PINCERR_INIT_POSITION);
@@ -404,6 +405,8 @@ public class Effector {
                 case INIT:
                     if (desiredState == EffectorState.STAGED_LIFT) {
                         nextPosition = EffectorState.STAGED_LIFT;
+                        // Todo: Don't move servos in nextState().
+                        wristRotator.setPosition(WRIST_INTAKE_POSITION);
                     }
                     if (desiredState == EffectorState.DRIVING) {
                         nextPosition = EffectorState.DRIVING;
