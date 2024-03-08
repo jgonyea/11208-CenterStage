@@ -116,6 +116,12 @@ public class KardiaTeleOp extends OpMode {
             is_start_pressed = false;
         }
 
+        // X button closes front pincers
+        if (drone.wasLaunched()) {
+            effector.setPincerPosition(frontPincerLeft, Effector.PincerState.INIT);
+            effector.setPincerPosition(frontPincerRight, Effector.PincerState.INIT);
+        }
+
         // Debug.  Todo: Remove before competition.
         telemetry.addData("LiftL Current Pos: ", liftMotorLeft.getCurrentPosition());
         telemetry.addData("LiftL Target: ", liftMotorLeft.getTargetPosition());

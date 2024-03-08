@@ -50,7 +50,8 @@ public class Effector {
     private final static double FRONT_PINCER_OPEN_OFFSET = 0.4072;
     public enum PincerState {
         GRIP,
-        RELEASE
+        RELEASE,
+        INIT
     }
 
     private final static double WRIST_INTAKE_POSITION = 0.8889;
@@ -284,8 +285,8 @@ public class Effector {
                 armRotatorRight.setPosition(ARM_INIT_POSITION);
                 handActuator.setPosition(HAND_INIT_POSITION);
                 wristRotator.setPosition(WRIST_SCORING_POSITION);
-                frontPincerLeft.setPosition(FRONT_PINCERL_INIT_POSITION);
-                frontPincerRight.setPosition(FRONT_PINCERR_INIT_POSITION);
+                setPincerPosition(frontPincerLeft, PincerState.INIT);
+                setPincerPosition(frontPincerRight, PincerState.INIT);
                 break;
 
             default:
@@ -296,30 +297,40 @@ public class Effector {
     }
 
     public void setPincerPosition(Servo pincer, PincerState desiredState){
-        double releasePosition;
-        double gripPosition;
-        if (pincer == pincerLeft) {
-            releasePosition = PINCERL_CLOSED_POSITION;
-            gripPosition = releasePosition + PINCER_GRIP_OFFSET;
-        } else if (pincer == pincerRight) {
-            releasePosition = PINCERR_CLOSED_POSITION;
-            gripPosition = releasePosition - PINCER_GRIP_OFFSET;
-        } else if (pincer == frontPincerLeft) {
-            gripPosition = FRONT_PINCERL_CLOSED_POSITION;
-            releasePosition = gripPosition + FRONT_PINCER_OPEN_OFFSET;
-        } else if (pincer == frontPincerRight) {
-            gripPosition = FRONT_PINCERR_CLOSED_POSITION;
-            releasePosition = gripPosition - FRONT_PINCER_OPEN_OFFSET;
+        if (desiredState == PincerState.INIT) {
+            if (pincer == frontPincerLeft) {
+                frontPincerLeft.setPosition(FRONT_PINCERL_INIT_POSITION);
+            } else if (pincer == frontPincerRight) {
+                frontPincerRight.setPosition(FRONT_PINCERR_INIT_POSITION);
+            } else {
+                throw new IllegalArgumentException(pincer + " does not have an INIT position");
+            }
         } else {
-            throw new IllegalArgumentException(pincer + " is not a known pincer servo");
-        }
-        switch (desiredState){
-            case GRIP:
-                pincer.setPosition(gripPosition);
-                break;
-            case RELEASE:
-                pincer.setPosition(releasePosition);
-                break;
+            double releasePosition;
+            double gripPosition;
+            if (pincer == pincerLeft) {
+                releasePosition = PINCERL_CLOSED_POSITION;
+                gripPosition = releasePosition + PINCER_GRIP_OFFSET;
+            } else if (pincer == pincerRight) {
+                releasePosition = PINCERR_CLOSED_POSITION;
+                gripPosition = releasePosition - PINCER_GRIP_OFFSET;
+            } else if (pincer == frontPincerLeft) {
+                gripPosition = FRONT_PINCERL_CLOSED_POSITION;
+                releasePosition = gripPosition + FRONT_PINCER_OPEN_OFFSET;
+            } else if (pincer == frontPincerRight) {
+                gripPosition = FRONT_PINCERR_CLOSED_POSITION;
+                releasePosition = gripPosition - FRONT_PINCER_OPEN_OFFSET;
+            } else {
+                throw new IllegalArgumentException(pincer + " is not a known pincer servo");
+            }
+            switch (desiredState) {
+                case GRIP:
+                    pincer.setPosition(gripPosition);
+                    break;
+                case RELEASE:
+                    pincer.setPosition(releasePosition);
+                    break;
+            }
         }
     }
 
