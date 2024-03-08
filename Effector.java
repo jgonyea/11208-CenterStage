@@ -46,7 +46,7 @@ public class Effector {
     private final static double FRONT_PINCERL_INIT_POSITION = 0.0950;
     private final static double FRONT_PINCERR_INIT_POSITION = 0.9022;
     private final static double FRONT_PINCERL_CLOSED_POSITION = 0.1861;
-    private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8033;
+    private final static double FRONT_PINCERR_CLOSED_POSITION = 0.8122;
     private final static double FRONT_PINCER_OPEN_OFFSET = 0.4072;
     public enum PincerState {
         GRIP,
