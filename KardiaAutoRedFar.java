@@ -70,7 +70,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
         Pose2d scanningPose =    new Pose2d(  -33.592, -40.203, 5.6);
         Pose2d spikeLeftPose =   new Pose2d(  -34.992, -31.373, Math.PI);
         Pose2d afterLeftPose =   new Pose2d(  -30.992, -31.373, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(  -36.202, -16.533, Math.PI * 1.5);
+        Pose2d spikeCenterPose = new Pose2d(  -39.202, -16.533, Math.PI * 1.5);
         Pose2d spikeRightPose =  new Pose2d(  -29.792, -33.003, 0);
         Pose2d afterRightPose =  new Pose2d(  -36.202, -33.003, 0);
         Vector2d afterPurple =   new Vector2d(-32.252, - 9.303);

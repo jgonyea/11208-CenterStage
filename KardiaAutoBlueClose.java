@@ -69,7 +69,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         Pose2d scanningPose =           new Pose2d(12.516, 40.724, 2.46);
         Pose2d spikeLeftIntermediate =  new Pose2d(35.855, 36.745, 3.51);
         Pose2d spikeLeftPose =          new Pose2d(30.516, 31.894, Math.PI);
-        Pose2d spikeCenterPose =        new Pose2d(11.476, 33.224, Math.PI * 1.5);
+        Pose2d spikeCenterPose =        new Pose2d(11.476, 32.724, Math.PI * 1.5);
         Pose2d spikeRightIntermediate = new Pose2d(15.516, 33.224, Math.PI);
         Pose2d spikeRightPose =         new Pose2d(8.216,  33.024, Math.PI);
         Pose2d scoreCenter =            new Pose2d(41.916, 34.724, Math.PI);

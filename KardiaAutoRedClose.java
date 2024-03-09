@@ -69,7 +69,7 @@ public class KardiaAutoRedClose extends LinearOpMode {
         Pose2d scanningPose =    new Pose2d(16.835, -40.888, 5.6);
         Pose2d spikeLeftPose =   new Pose2d(10.335, -32.558, Math.PI);
         Pose2d spikeCenterPose = new Pose2d(15.125, -32.858, Math.PI * 0.5);
-        Pose2d spikeRightPose =  new Pose2d(30.635, -33.388, Math.PI);
+        Pose2d spikeRightPose =  new Pose2d(32.135, -29.388, Math.PI);
         Pose2d scoreCenter =     new Pose2d(41.916, -34.724, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
         double scoreOffset = 6.0;
