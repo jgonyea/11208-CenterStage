@@ -66,15 +66,16 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
         // All numbers that require manual tuning.
         Pose2d startPose =              new Pose2d(15.916, 60.224, Math.PI * 1.5);
-        Pose2d scanningPose =           new Pose2d(12.516, 40.724, 2.46);
+        Pose2d scanningPose =           new Pose2d(14.516, 40.724, 2.46);
         Pose2d spikeLeftIntermediate =  new Pose2d(35.855, 36.745, 3.51);
-        Pose2d spikeLeftPose =          new Pose2d(30.516, 31.894, Math.PI);
+        Pose2d spikeLeftPose =          new Pose2d(32.516, 31.894, Math.PI);
         Pose2d spikeCenterPose =        new Pose2d(11.476, 32.724, Math.PI * 1.5);
         Pose2d spikeRightIntermediate = new Pose2d(15.516, 33.224, Math.PI);
-        Pose2d spikeRightPose =         new Pose2d(8.216,  33.024, Math.PI);
-        Pose2d scoreCenter =            new Pose2d(41.916, 34.724, Math.PI);
+        Pose2d spikeRightPose =         new Pose2d(11.216, 33.024, Math.PI);
+        Pose2d scoreLeft =              new Pose2d(41.916, 44.934, Math.PI);
+        Pose2d scoreCenter =            new Pose2d(41.916, 37.834, Math.PI);
+        Pose2d scoreRight =             new Pose2d(41.916, 29.288, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
-        double scoreOffset = 6.0;
         double parkOffsetY = 24.0;
         double parkOffsetX = -3.0;
         double parkBackup  = 10.0;
@@ -105,11 +106,9 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         TrajectorySequence leftSpikeTraj = lineTraj(scanningTurn.end(), spikeLeftIntermediate, spikeLeftPose);
         TrajectorySequence centerSpikeTraj = lineTraj(scanningTurn.end(), spikeCenterPose);
         TrajectorySequence rightSpikeTraj = lineTraj(scanningTurn.end(), spikeRightIntermediate, spikeRightPose);
-        TrajectorySequence leftSpikeToScoring = lineTraj(leftSpikeTraj.end(),
-                scoreCenter.plus(new Pose2d(0, scoreOffset, 0)));
+        TrajectorySequence leftSpikeToScoring = lineTraj(leftSpikeTraj.end(), scoreLeft);
         TrajectorySequence centerSpikeToScoring = lineTraj(centerSpikeTraj.end(), scoreCenter);
-        TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeTraj.end(),
-                scoreCenter.plus(new Pose2d(0, -scoreOffset, 0)));
+        TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeTraj.end(), scoreRight);
 
         // Allocate variables for on-the-fly trajectories.
         TrajectorySequence selectedSpikeTraj = null;
@@ -266,6 +265,10 @@ public class KardiaAutoBlueClose extends LinearOpMode {
             if (step == 9) {
                 Pose2d finalScoreCenter = new Pose2d(
                         robot.getPoseEstimate().getX(), scoreCenter.getY(), scoreCenter.getHeading());
+
+                // Todo - remove this problemy hack thing
+                if (teamPropPosition == spike.RIGHT && rightSwitch.getState() == TripleSwitch.switchState.UP) parkOffsetY -= 3;
+
                 switch (rightSwitch.getState()) {
                     case UP:
                         scoringToParking = lineTraj(finalScoreCenter,
