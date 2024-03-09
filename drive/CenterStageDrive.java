@@ -94,7 +94,7 @@ public class CenterStageDrive extends MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        imu = hardwareMap.get(IMU.class, "imu");
+        imu = hardwareMap.get(IMU.class, "expansimu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 CenterStageConstants.LOGO_FACING_DIR, CenterStageConstants.USB_FACING_DIR));
         imu.initialize(parameters);
