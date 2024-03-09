@@ -21,6 +21,21 @@ This file contains the configuration from our robot's control hub. In case it is
 | 3 | Servo | `pincerL` |
 | 4 | Servo | `pincerR` |
 
+**Digital Devices**
+
+| Port | Attached | Name |
+| :-: | :- | :- |
+| 4 | Digital Device | `parkSwitchI` |
+| 5 | Digital Device | `parkSwitchII` |
+| 6 | Digital Device | `switch2` |
+| 7 | Digital Device | `switch3` |
+
+**I2C Bus 0**
+
+| Port | Attached | Name |
+| :-: | :- | :- |
+| 0 | REV internal IMU (BNO055) | `expansimu` |
+
 ### Control Hub
 
 **Motors**
@@ -39,15 +54,6 @@ This file contains the configuration from our robot's control hub. In case it is
 | 1 | Servo | `armR` |
 | 4 | Servo | `frontpL` |
 | 5 | Servo | `frontpR` |
-
-**Digital Devices**
-
-| Port | Attached | Name |
-| :-: | :- | :- |
-| 4 | Digital Device | `parkSwitchI` |
-| 5 | Digital Device | `parkSwitchII` |
-| 6 | Digital Device | `switch2` |
-| 7 | Digital Device | `switch3` |
 
 **I2C Bus 0**
 
