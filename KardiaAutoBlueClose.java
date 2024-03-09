@@ -87,7 +87,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         rightSwitch = new TripleSwitch(rightSwitchI, rightSwitchII);
 
         // Check whether this is a dead auto; if so, exit immediately.
-        if (leftSwitch.getState()) {
+        if (!leftSwitch.getState()) {
             telemetry.addLine("WARNING! RUNNING DEAD AUTO!");
             telemetry.addLine("Please check the left switch.");
             telemetry.update();
