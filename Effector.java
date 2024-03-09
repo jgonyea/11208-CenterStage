@@ -137,6 +137,8 @@ public class Effector {
                     this.is_a_pressed = false;
                     this.is_y_pressed = true;
                     timer.reset();
+                    setPincerPosition(frontPincerLeft, PincerState.GRIP);
+                    setPincerPosition(frontPincerRight, PincerState.GRIP);
                     setDesiredState(EffectorState.STAGED_LIFT);
                     break;
                 }
@@ -191,6 +193,8 @@ public class Effector {
                     // Wait for 2nd press to go down.
                     if (gp.a && !this.is_a_pressed) {
                         this.is_a_pressed = true;
+                        setPincerPosition(frontPincerLeft, PincerState.RELEASE);
+                        setPincerPosition(frontPincerRight, PincerState.RELEASE);
                         setDesiredState(EffectorState.DRIVING);
                         break;
                     }
