@@ -67,20 +67,20 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
         // All numbers that require manual tuning.
         Pose2d startPose =       new Pose2d(  -36.992, -59.703, Math.PI * 0.5);
-        Pose2d scanningPose =    new Pose2d(  -33.592, -40.203, 5.6);
-        Pose2d spikeLeftPose =   new Pose2d(  -34.992, -31.373, Math.PI);
-        Pose2d afterLeftPose =   new Pose2d(  -30.992, -31.373, Math.PI);
-        Pose2d spikeCenterPose = new Pose2d(  -39.202, -16.533, Math.PI * 1.5);
-        Pose2d spikeRightPose =  new Pose2d(  -29.792, -33.003, 0);
-        Pose2d afterRightPose =  new Pose2d(  -36.202, -33.003, 0);
-        Vector2d afterPurple =   new Vector2d(-32.252, - 9.303);
+        Pose2d scanningPose =    new Pose2d(  -35.592, -40.203, 5.6);
+        Pose2d spikeLeftPose =   new Pose2d(  -42.687, -19.972, 4.142);
+        Pose2d spikeCenterPose = new Pose2d(  -40.387, -16.048, 4.45);
+        Pose2d spikeRightPose =  new Pose2d(  -32.792, -33.003, 0);
+        Pose2d afterRightPose =  new Pose2d(  -44.202, -33.003, 0);
+        Vector2d afterPurple =   new Vector2d(-36.252, -09.303);
         Pose2d preScoreTraj =    new Pose2d(  -31.252, -11.303, Math.PI);
         Pose2d scoreTrajPose2 =  new Pose2d(   31.748, -12.303, Math.PI);
-        Pose2d scoreCenter =     new Pose2d(   39.916, -35.124, Math.PI);
+        Pose2d scoreLeft =       new Pose2d(   32.916, -23.854, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(   32.916, -29.931, Math.PI);
+        Pose2d scoreRight =      new Pose2d(   32.916, -40.765, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
-        double scoreOffset = 6.0;
-        double parkOffsetLeft  = 26.0;
-        double parkOffsetRight = 23.0;
+        double parkOffsetLeft  = 24.0;
+        double parkOffsetRight = 24.0;
         double parkOffsetX = -3.0;
         double parkBackup  = 10.0;
 
@@ -110,19 +110,22 @@ public class KardiaAutoRedFar extends LinearOpMode {
         TrajectorySequence leftSpikeTraj = lineTraj(scanningTurn.end(), spikeLeftPose);
         TrajectorySequence centerSpikeTraj = lineTraj(scanningTurn.end(), spikeCenterPose);
         TrajectorySequence rightSpikeTraj = lineTraj(scanningTurn.end(), spikeRightPose);
-        TrajectorySequence leftSpikeToScoring = lineTraj(leftSpikeTraj.end(), afterLeftPose,
-                preScoreTraj, scoreTrajPose2,
-                scoreCenter.plus(new Pose2d(0, scoreOffset, 0)));
-        TrajectorySequence centerSpikeToScoring = lineTraj(centerSpikeTraj.end(),
-                new Pose2d(afterPurple, spikeCenterPose.getHeading()),
+        TrajectorySequence leftSpikeAway = lineTraj(leftSpikeTraj.end(),
+                new Pose2d(afterPurple, spikeLeftPose.getHeading()));
+        TrajectorySequence centerSpikeAway = lineTraj(centerSpikeTraj.end(),
+                new Pose2d(afterPurple, spikeCenterPose.getHeading()));
+        TrajectorySequence rightSpikeAway = lineTraj(rightSpikeTraj.end(), afterRightPose);
+        TrajectorySequence leftSpikeToScoring = lineTraj(leftSpikeAway.end(),
+                preScoreTraj, scoreTrajPose2, scoreLeft);
+        TrajectorySequence centerSpikeToScoring = lineTraj(centerSpikeAway.end(),
                 preScoreTraj, scoreTrajPose2, scoreCenter);
-        TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeTraj.end(), afterRightPose,
+        TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeAway.end(),
                 new Pose2d(afterPurple, spikeRightPose.getHeading()),
-                preScoreTraj, scoreTrajPose2,
-                scoreCenter.plus(new Pose2d(0, -scoreOffset, 0)));
+                preScoreTraj, scoreTrajPose2, scoreRight);
 
         // Allocate variables for on-the-fly trajectories.
         TrajectorySequence selectedSpikeTraj = null;
+        TrajectorySequence selectedAvoidTraj = null;
         TrajectorySequence selectedScoreTraj = null;
         TrajectorySequence scoringToParking = null;
 
@@ -169,16 +172,19 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 switch (teamPropPosition) {
                     case LEFT:
                         selectedSpikeTraj = leftSpikeTraj;
+                        selectedAvoidTraj = leftSpikeAway;
                         selectedScoreTraj = leftSpikeToScoring;
                         break;
 
                     case CENTER:
                         selectedSpikeTraj = centerSpikeTraj;
+                        selectedAvoidTraj = centerSpikeAway;
                         selectedScoreTraj = centerSpikeToScoring;
                         break;
 
                     case RIGHT:
                         selectedSpikeTraj = rightSpikeTraj;
+                        selectedAvoidTraj = rightSpikeAway;
                         selectedScoreTraj = rightSpikeToScoring;
                         break;
                 }
@@ -211,8 +217,14 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 step++;
             }
 
-            // Drive to score board
+            // Drive away from spike mark
             if (step == 5) {
+                robot.followTrajectorySequenceAsync(selectedAvoidTraj);
+                blockDuringMotion();
+
+                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.INIT);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.INIT);
+
                 robot.followTrajectorySequenceAsync(selectedScoreTraj);
                 blockDuringMotion();
 
@@ -221,7 +233,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
             // Prepare effector and raise lift.
             if (step == 6) {
-                lift.setLiftTarget(0.55, 1);
+                lift.setLiftTarget(0.15, 1);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
@@ -278,6 +290,12 @@ public class KardiaAutoRedFar extends LinearOpMode {
             if (step == 9) {
                 Pose2d finalScoreCenter = new Pose2d(
                         robot.getPoseEstimate().getX(), scoreCenter.getY(), scoreCenter.getHeading());
+
+                // Todo - remove this problemy hack thing
+                if (teamPropPosition == spike.RIGHT && rightSwitch.getState() == TripleSwitch.switchState.UP)   parkOffsetRight += 4;
+                if (teamPropPosition == spike.LEFT  && rightSwitch.getState() == TripleSwitch.switchState.UP)   parkOffsetRight -= 1;
+                if (teamPropPosition == spike.RIGHT && rightSwitch.getState() == TripleSwitch.switchState.DOWN) parkOffsetLeft -= 3;
+
                 switch (rightSwitch.getState()) {
                     case UP:
                         scoringToParking = lineTraj(finalScoreCenter,
