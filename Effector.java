@@ -71,6 +71,9 @@ public class Effector {
     private boolean is_b_pressed = false;
     private boolean is_y_pressed = false;
 
+    // Todo: Figure out a cleaner way of doing this
+    private boolean init_wrist_spin_flag = false;
+
     // Configure effector Servos.
     public void init(Servo armRotatorLeft, Servo armRotatorRight, Servo wristRotator, Servo handActuator, Servo pincerLeft, Servo pincerRight, Servo frontPincerLeft, Servo frontPincerRight) {
         this.armRotatorLeft = armRotatorLeft;
@@ -288,7 +291,6 @@ public class Effector {
                 armRotatorLeft.setPosition(ARM_INIT_POSITION);
                 armRotatorRight.setPosition(ARM_INIT_POSITION);
                 handActuator.setPosition(HAND_INIT_POSITION);
-                wristRotator.setPosition(WRIST_SCORING_POSITION);
                 setPincerPosition(frontPincerLeft, PincerState.INIT);
                 setPincerPosition(frontPincerRight, PincerState.INIT);
                 break;
@@ -373,9 +375,6 @@ public class Effector {
      */
     private EffectorState nextState() {
         EffectorState nextPosition = null;
-        if (desiredState == EffectorState.INIT) {
-            nextPosition = EffectorState.INIT;
-        } else {
             switch (currentState) {
                 case SCORING:
                     if (desiredState == EffectorState.DRIVING || desiredState == EffectorState.STAGED_LIFT) {
@@ -387,6 +386,9 @@ public class Effector {
                         nextPosition = EffectorState.SCORING;
                     } else if (desiredState == EffectorState.DRIVING) {
                         nextPosition = EffectorState.DRIVING;
+                    } else if (desiredState == EffectorState.INIT) {
+                        nextPosition = EffectorState.INIT;
+                        wristRotator.setPosition(WRIST_SCORING_POSITION);
                     }
                     break;
                 case DRIVING:
@@ -396,6 +398,9 @@ public class Effector {
                         nextPosition = EffectorState.STAGED_INTAKE;
                     } else if (desiredState == EffectorState.SWEEP_FRONT) {
                         nextPosition = EffectorState.SWEEP_FRONT;
+                    } else if (desiredState == EffectorState.INIT) {
+                        nextPosition = EffectorState.INIT;
+                        wristRotator.setPosition(WRIST_SCORING_POSITION);
                     }
                     break;
                 case SWEEP_FRONT:
@@ -416,19 +421,21 @@ public class Effector {
                     }
                     break;
                 case INIT:
-                    if (desiredState == EffectorState.STAGED_LIFT) {
-                        nextPosition = EffectorState.STAGED_LIFT;
-                        // Todo: Don't move servos in nextState().
-                        wristRotator.setPosition(WRIST_INTAKE_POSITION);
-                    }
-                    if (desiredState == EffectorState.DRIVING) {
-                        nextPosition = EffectorState.DRIVING;
+                    // Todo: Figure out a cleaner way of doing this
+                    if (desiredState == EffectorState.STAGED_LIFT || desiredState == EffectorState.DRIVING) {
+                        if (init_wrist_spin_flag) {
+                            init_wrist_spin_flag = false;
+                            nextPosition = desiredState;
+                        } else {
+                            wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                            init_wrist_spin_flag = true;
+                            nextPosition = EffectorState.INIT;
+                        }
                     }
                     break;
                 default:
                     nextPosition = EffectorState.DRIVING;
             }
-        }
 
         return nextPosition;
     }
