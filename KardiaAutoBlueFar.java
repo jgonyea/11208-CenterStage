@@ -77,7 +77,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         Pose2d scoreTrajPose2 =  new Pose2d(   31.748, 11.421, Math.PI);
         Pose2d scoreLeft =       new Pose2d(   39.916, 42.124, Math.PI);
         Pose2d scoreCenter =     new Pose2d(   39.916, 36.124, Math.PI);
-        Pose2d scoreRight =      new Pose2d(   39.916, 31.124, Math.PI);
+        Pose2d scoreRight =      new Pose2d(   39.916, 30.124, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
         double parkOffsetLeft  = 22.0;
         double parkOffsetRight = 26.0;
@@ -214,7 +214,12 @@ public class KardiaAutoBlueFar extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
-                step++;
+                // Check whether this is an "only purple" auto.
+                if (!centerSwitch.getState()) {
+                    step = 199;
+                } else {
+                    step++;
+                }
             }
 
             // Drive away from spike mark

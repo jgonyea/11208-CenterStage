@@ -214,7 +214,12 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
-                step++;
+                // Check whether this is an "only purple" auto.
+                if (!centerSwitch.getState()) {
+                    step = 199;
+                } else {
+                    step++;
+                }
             }
 
             // Drive away from spike mark

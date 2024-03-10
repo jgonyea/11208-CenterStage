@@ -67,9 +67,9 @@ public class KardiaAutoRedClose extends LinearOpMode {
         // All numbers that require manual tuning.
         Pose2d startPose =       new Pose2d(15.435, -60.388, Math.PI * 0.5);
         Pose2d scanningPose =    new Pose2d(16.835, -40.888, 5.6);
-        Pose2d spikeLeftPose =   new Pose2d(10.335, -32.558, Math.PI);
+        Pose2d spikeLeftPose =   new Pose2d(09.335, -31.558, Math.PI);
         Pose2d spikeCenterPose = new Pose2d(15.125, -32.858, Math.PI * 0.5);
-        Pose2d spikeRightPose =  new Pose2d(31.135, -29.388, Math.PI);
+        Pose2d spikeRightPose =  new Pose2d(30.135, -29.388, Math.PI);
         Pose2d scoreCenter =     new Pose2d(41.916, -34.724, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
         double scoreOffset = 6.0;
@@ -196,7 +196,12 @@ public class KardiaAutoRedClose extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
-                step++;
+                // Check whether this is an "only purple" auto.
+                if (!centerSwitch.getState()) {
+                    step = 199;
+                } else {
+                    step++;
+                }
             }
 
             // Drive to score board
