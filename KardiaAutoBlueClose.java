@@ -146,7 +146,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 } else {
                     // Calculate where the prop was detected.
                     teamPropPosition = calculateSpike(minDistanceRHeading);
-                    telemetry.addData("Detected team prop", teamPropPosition.name());
+
                     telemetryUpdate();
 
                     step++;
@@ -199,6 +199,25 @@ public class KardiaAutoBlueClose extends LinearOpMode {
 
                 // Check whether this is an "only purple" auto.
                 if (!centerSwitch.getState()) {
+                    // Carefully maneuver to retain yellow pixel for teleop.
+                    TrajectorySequence moveBackFromPurple =
+                            robot.trajectorySequenceBuilder(robot.getPoseEstimate())
+                                    .back(8)
+                                    .build();
+                    robot.followTrajectorySequenceAsync(moveBackFromPurple);
+                    blockDuringMotion();
+
+                    effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                    sleep(Effector.STAGED_INTAKE_TIME);
+                    effector.setDesiredState(Effector.EffectorState.INTAKE);
+                    effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
+                    effector.setPincerPosition(frontPincerLeft, Effector.PincerState.INIT);
+                    effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
+                    sleep(Effector.STAGED_INTAKE_TIME);
+                    effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                    sleep(Effector.STAGED_INTAKE_TIME);
+                    effector.setDesiredState(Effector.EffectorState.DRIVING);
+
                     step = 199;
                 } else {
                     step++;
@@ -385,6 +404,8 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         // Todo: Fix pose "jump" when OpMode stopped.
         if (!isStopRequested()) PoseStorage.setPose(pose);
 
+        if (teamPropPosition != null)
+            telemetry.addData("Team Prop was", teamPropPosition.name());
         telemetry.addData("step #", step);
         telemetry.addData("Current Pose x (in): ", Math.floor(pose.getX() * 1000) / 1000);
         telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
