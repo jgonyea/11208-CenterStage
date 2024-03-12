@@ -55,7 +55,7 @@ import java.util.List;
  */
 @Config
 public class CenterStageDrive extends MecanumDrive {
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4.7, 0, 0.36);
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(6, 0, 0.2);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(6, 0, 0.2);
 
     public static double LATERAL_MULTIPLIER = 1;
