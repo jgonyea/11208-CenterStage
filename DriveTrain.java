@@ -110,18 +110,18 @@ public class DriveTrain {
         // Override left stick if dpad pressed
         if (dpadState == 0b0001) {
             x = 0.0;
-            y = -DPAD_POWER;
+            y = DPAD_POWER;
         }
         if (dpadState == 0b0010) {
-            x = DPAD_POWER;
+            x = -DPAD_POWER;
             y = 0.0;
         }
         if (dpadState == 0b0100) {
             x = 0.0;
-            y = DPAD_POWER;
+            y = -DPAD_POWER;
         }
         if (dpadState == 0b1000) {
-            x = -DPAD_POWER;
+            x = DPAD_POWER;
             y = 0.0;
         }
 
