@@ -74,8 +74,8 @@ public class KardiaAutoRedClose extends LinearOpMode {
         double scanningTurnAngle = Math.toRadians(-135);
         double scoreOffset = 6.0;
         double parkOffsetY = 24.0;
-        double parkOffsetX = -3.0;
-        double parkBackup  = 10.0;
+        double parkOffsetX = -6.0;
+        double parkBackup  = 13.0;
 
         // Switch init must be done first, in case this is a dead auto.
         leftSwitch = hardwareMap.get(DigitalChannel.class, "switch3");

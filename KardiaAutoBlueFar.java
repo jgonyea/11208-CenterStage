@@ -81,8 +81,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         double scanningTurnAngle = Math.toRadians(-135);
         double parkOffsetLeft  = 22.0;
         double parkOffsetRight = 26.0;
-        double parkOffsetX = -3.0;
-        double parkBackup  = 10.0;
+        double parkOffsetX = -6.0;
+        double parkBackup  = 13.0;
 
         // Switch init must be done first, in case this is a dead auto.
         leftSwitch = hardwareMap.get(DigitalChannel.class, "switch3");
@@ -257,7 +257,7 @@ public class KardiaAutoBlueFar extends LinearOpMode {
 
             // Prepare effector and raise lift.
             if (step == 6) {
-                lift.setLiftTarget(0.15, 1);
+                lift.setLiftTarget(0.53, 1);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
                 sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);

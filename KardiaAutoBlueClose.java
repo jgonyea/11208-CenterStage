@@ -77,8 +77,8 @@ public class KardiaAutoBlueClose extends LinearOpMode {
         Pose2d scoreRight =             new Pose2d(41.916, 29.288, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
         double parkOffsetY = 24.0;
-        double parkOffsetX = -3.0;
-        double parkBackup  = 10.0;
+        double parkOffsetX = -6.0;
+        double parkBackup  = 13.0;
 
         // Switch init must be done first, in case this is a dead auto.
         leftSwitch = hardwareMap.get(DigitalChannel.class, "switch3");
