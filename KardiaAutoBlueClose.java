@@ -197,31 +197,7 @@ public class KardiaAutoBlueClose extends LinearOpMode {
                 sleep(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
-                // Check whether this is an "only purple" auto.
-                if (!centerSwitch.getState()) {
-                    // Carefully maneuver to retain yellow pixel for teleop.
-                    TrajectorySequence moveBackFromPurple =
-                            robot.trajectorySequenceBuilder(robot.getPoseEstimate())
-                                    .back(8)
-                                    .build();
-                    robot.followTrajectorySequenceAsync(moveBackFromPurple);
-                    blockDuringMotion();
-
-                    effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                    sleep(Effector.STAGED_INTAKE_TIME);
-                    effector.setDesiredState(Effector.EffectorState.INTAKE);
-                    effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
-                    effector.setPincerPosition(frontPincerLeft, Effector.PincerState.INIT);
-                    effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
-                    sleep(Effector.STAGED_INTAKE_TIME);
-                    effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                    sleep(Effector.STAGED_INTAKE_TIME);
-                    effector.setDesiredState(Effector.EffectorState.DRIVING);
-
-                    step = 199;
-                } else {
-                    step++;
-                }
+                step++;
             }
 
             // Drive to score board
