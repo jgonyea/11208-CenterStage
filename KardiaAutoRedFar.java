@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.CenterStageDrive;
@@ -46,6 +47,9 @@ public class KardiaAutoRedFar extends LinearOpMode {
     DigitalChannel rightSwitchI;
     DigitalChannel rightSwitchII;
     TripleSwitch rightSwitch;
+
+    // Minimum time to wait for distance sensor approach.
+    private final static long MIN_BACKUP_TIME = 1700;
 
     private enum spike {
         LEFT,
@@ -102,6 +106,9 @@ public class KardiaAutoRedFar extends LinearOpMode {
             return;
         }
 
+        // Timer for distance sensor backup
+        ElapsedTime backupTimer = new ElapsedTime();
+
         robot = new CenterStageDrive(hardwareMap);
 
         // Precompute most trajectories.
@@ -132,9 +139,6 @@ public class KardiaAutoRedFar extends LinearOpMode {
         // Configure robot and pick up pixels.
         autoInit(startPose);
 
-        // Reset pose again, in case robot was re-aligned.
-        robot.setPoseEstimate(startPose);
-
         // Autonomous loop.
         while (opModeIsActive()) {
 
@@ -160,7 +164,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 } else {
                     // Calculate where the prop was detected.
                     teamPropPosition = calculateSpike(minDistanceRHeading);
-                    telemetry.addData("Detected team prop", teamPropPosition.name());
+
                     telemetryUpdate();
 
                     step++;
@@ -238,6 +242,8 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 sleep(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
 
+                backupTimer.reset();
+
                 step++;
             }
 
@@ -270,7 +276,9 @@ public class KardiaAutoRedFar extends LinearOpMode {
                     // Release manual wheel power.
                     robot.setMotorPowers(0, 0, 0, 0);
 
-                    step++;
+                    if (backupTimer.milliseconds() > MIN_BACKUP_TIME) {
+                        step++;
+                    }
                 }
             }
 
@@ -381,6 +389,9 @@ public class KardiaAutoRedFar extends LinearOpMode {
             robot.update();
             telemetryUpdate();
         }
+
+        // Reset pose again, in case robot was re-aligned.
+        robot.setPoseEstimate(startPose);
 
         effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
         sleep(Effector.STAGED_LIFT_TIME);
