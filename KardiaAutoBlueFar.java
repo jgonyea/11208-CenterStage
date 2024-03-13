@@ -436,7 +436,8 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         telemetry.addData("Current Pose y (in): ", Math.floor(pose.getY() * 1000) / 1000);
         telemetry.addData("Current Pose h (rad): ", Math.floor(pose.getHeading() * 1000) / 1000);
         telemetry.addData("Current Pose h (deg): ", Math.floor(pose.getHeading() * 180 / Math.PI));
-
+        telemetry.addData("LiftL Pos", liftLeft.getCurrentPosition());
+        telemetry.addData("LiftL Trg", liftLeft.getTargetPosition());
         telemetry.addData("DistL (cm): ", distL.getDistance(distUnit));
         telemetry.addData("DistR (cm): ", distR.getDistance(distUnit));
         telemetry.addData("min R", minDistanceR);
