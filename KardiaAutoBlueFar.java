@@ -79,9 +79,9 @@ public class KardiaAutoBlueFar extends LinearOpMode {
         Vector2d afterPurple =   new Vector2d(-34.252, 09.421);
         Pose2d preScoreTraj =    new Pose2d(  -33.252, 10.421, Math.PI);
         Pose2d scoreTrajPose2 =  new Pose2d(   31.748, 11.421, Math.PI);
-        Pose2d scoreLeft =       new Pose2d(   39.916, 42.124, Math.PI);
-        Pose2d scoreCenter =     new Pose2d(   39.916, 36.124, Math.PI);
-        Pose2d scoreRight =      new Pose2d(   39.916, 30.124, Math.PI);
+        Pose2d scoreLeft =       new Pose2d(   39.916, 43.124, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(   39.916, 39.124, Math.PI);
+        Pose2d scoreRight =      new Pose2d(   39.916, 32.124, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
         double parkOffsetLeft  = 22.0;
         double parkOffsetRight = 26.0;

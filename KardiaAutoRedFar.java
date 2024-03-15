@@ -73,15 +73,27 @@ public class KardiaAutoRedFar extends LinearOpMode {
         Pose2d startPose =       new Pose2d(  -36.992, -59.703, Math.PI * 0.5);
         Pose2d scanningPose =    new Pose2d(  -35.592, -40.203, 5.6);
         Pose2d spikeLeftPose =   new Pose2d(  -42.687, -19.972, 4.142);
-        Pose2d spikeCenterPose = new Pose2d(  -40.387, -16.048, 4.45);
+        Pose2d spikeCenterPose = new Pose2d(  -37.387, -16.548, 4.45);
         Pose2d spikeRightPose =  new Pose2d(  -32.792, -33.003, 0);
         Pose2d afterRightPose =  new Pose2d(  -44.202, -33.003, 0);
+        Pose2d spikeLeftWhite =  new Pose2d(  -47.000, -25.790, Math.PI * 1.5);
+        Pose2d spikeCentWhite =  new Pose2d(  -41.611, -21.698, 5.886);
+
+        Pose2d getWhitePixel2 =  new Pose2d(  -55.800, -16.735, Math.toRadians(330));
+        Vector2d singleOffset = (new Vector2d(1, 0)).rotated(getWhitePixel2.getHeading());
+        double whitePixel1Forward = 4;
+        double whitePixelQForward = 1;
+        Pose2d getWhitePixel1 = getWhitePixel2.plus(
+                new Pose2d(singleOffset.times(whitePixel1Forward), 0));
+        Pose2d getWhitePixelQ = getWhitePixel2.plus(
+                new Pose2d(singleOffset.times(whitePixelQForward), 0));
+
         Vector2d afterPurple =   new Vector2d(-36.252, -09.303);
         Pose2d preScoreTraj =    new Pose2d(  -31.252, -11.303, Math.PI);
         Pose2d scoreTrajPose2 =  new Pose2d(   31.748, -12.303, Math.PI);
-        Pose2d scoreLeft =       new Pose2d(   32.916, -23.854, Math.PI);
-        Pose2d scoreCenter =     new Pose2d(   32.916, -29.931, Math.PI);
-        Pose2d scoreRight =      new Pose2d(   32.916, -40.765, Math.PI);
+        Pose2d scoreLeft =       new Pose2d(   32.916, -24.854, Math.PI);
+        Pose2d scoreCenter =     new Pose2d(   32.916, -32.931, Math.PI);
+        Pose2d scoreRight =      new Pose2d(   32.916, -40.791, Math.PI);
         double scanningTurnAngle = Math.toRadians(-135);
         double parkOffsetLeft  = 24.0;
         double parkOffsetRight = 24.0;
@@ -117,6 +129,8 @@ public class KardiaAutoRedFar extends LinearOpMode {
         TrajectorySequence leftSpikeTraj = lineTraj(scanningTurn.end(), spikeLeftPose);
         TrajectorySequence centerSpikeTraj = lineTraj(scanningTurn.end(), spikeCenterPose);
         TrajectorySequence rightSpikeTraj = lineTraj(scanningTurn.end(), spikeRightPose);
+        TrajectorySequence leftSpikeWhiteTraj = lineTraj(scanningTurn.end(), spikeLeftWhite);
+        TrajectorySequence centerSpikeWhiteTraj = lineTraj(scanningTurn.end(), spikeCentWhite);
         TrajectorySequence leftSpikeAway = lineTraj(leftSpikeTraj.end(),
                 new Pose2d(afterPurple, spikeLeftPose.getHeading()));
         TrajectorySequence centerSpikeAway = lineTraj(centerSpikeTraj.end(),
@@ -129,11 +143,26 @@ public class KardiaAutoRedFar extends LinearOpMode {
         TrajectorySequence rightSpikeToScoring = lineTraj(rightSpikeAway.end(),
                 new Pose2d(afterPurple, spikeRightPose.getHeading()),
                 preScoreTraj, scoreTrajPose2, scoreRight);
+        TrajectorySequence leftSpikeToWhite1 = lineTraj(leftSpikeWhiteTraj.end(), getWhitePixel2);
+        TrajectorySequence centerSpikeToWhite1 = lineTraj(centerSpikeWhiteTraj.end(), getWhitePixel2);
+        TrajectorySequence rightSpikeToWhite1 = lineTraj(rightSpikeTraj.end(), getWhitePixel2);
+        TrajectorySequence white1to2 = lineTraj(getWhitePixel1, getWhitePixel2);
+        TrajectorySequence white2toQ = lineTraj(getWhitePixel2, getWhitePixelQ);
+        TrajectorySequence whiteQto1 = lineTraj(getWhitePixelQ, getWhitePixel1);
+        TrajectorySequence white2to1 = lineTraj(getWhitePixel2, getWhitePixel1);
+        TrajectorySequence white1toScoreLeft = lineTraj(getWhitePixel1,
+                preScoreTraj, scoreTrajPose2, scoreLeft);
+        TrajectorySequence white1toScoreCenter = lineTraj(getWhitePixel1,
+                preScoreTraj, scoreTrajPose2, scoreCenter);
+        TrajectorySequence white1toScoreRight = lineTraj(getWhitePixel1,
+                preScoreTraj, scoreTrajPose2, scoreRight);
 
         // Allocate variables for on-the-fly trajectories.
         TrajectorySequence selectedSpikeTraj = null;
         TrajectorySequence selectedAvoidTraj = null;
         TrajectorySequence selectedScoreTraj = null;
+        TrajectorySequence selectedWhiteTraj = null;
+        TrajectorySequence scoreAfterWhitePx = null;
         TrajectorySequence scoringToParking = null;
 
         // Configure robot and pick up pixels.
@@ -175,21 +204,29 @@ public class KardiaAutoRedFar extends LinearOpMode {
             if (step == 2) {
                 switch (teamPropPosition) {
                     case LEFT:
-                        selectedSpikeTraj = leftSpikeTraj;
+                        selectedSpikeTraj =
+                                centerSwitch.getState() ? leftSpikeTraj : leftSpikeWhiteTraj;
                         selectedAvoidTraj = leftSpikeAway;
                         selectedScoreTraj = leftSpikeToScoring;
+                        selectedWhiteTraj = leftSpikeToWhite1;
+                        scoreAfterWhitePx = white1toScoreLeft;
                         break;
 
                     case CENTER:
-                        selectedSpikeTraj = centerSpikeTraj;
+                        selectedSpikeTraj =
+                                centerSwitch.getState() ? centerSpikeTraj : centerSpikeWhiteTraj;
                         selectedAvoidTraj = centerSpikeAway;
                         selectedScoreTraj = centerSpikeToScoring;
+                        selectedWhiteTraj = centerSpikeToWhite1;
+                        scoreAfterWhitePx = white1toScoreCenter;
                         break;
 
                     case RIGHT:
                         selectedSpikeTraj = rightSpikeTraj;
                         selectedAvoidTraj = rightSpikeAway;
                         selectedScoreTraj = rightSpikeToScoring;
+                        selectedWhiteTraj = rightSpikeToWhite1;
+                        scoreAfterWhitePx = white1toScoreRight;
                         break;
                 }
 
@@ -202,20 +239,44 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 robot.followTrajectorySequenceAsync(selectedSpikeTraj);
                 blockDuringMotion();
 
-                step++;
+                // Jump to white pixel sequence.
+                // todo This is never enabled.
+                if (false && !centerSwitch.getState()) {
+                    step += 101;
+                } else {
+                    step++;
+                }
             }
 
             // Place purple pixel.
             if (step == 4) {
                 effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
                 effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
-                sleep(Effector.SWEEP_FRONT_TIME);
+                blockForMillis(Effector.SWEEP_FRONT_TIME);
                 effector.setDesiredState(Effector.EffectorState.INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
                 effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
-                sleep(Effector.STAGED_INTAKE_TIME);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
-                sleep(Effector.STAGED_INTAKE_TIME);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.DRIVING);
+
+                step++;
+            }
+
+            // Place purple pixel.
+            if (step == 104) {
+                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
+                blockForMillis(Effector.SWEEP_FRONT_TIME);
+                effector.setDesiredState(Effector.EffectorState.INTAKE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
 
                 step++;
@@ -235,11 +296,90 @@ public class KardiaAutoRedFar extends LinearOpMode {
                 step++;
             }
 
+            // Drive away from spike mark
+            if (step == 105) {
+                robot.followTrajectorySequenceAsync(selectedWhiteTraj);
+                blockDuringMotion();
+
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
+                blockForMillis(Effector.SWEEP_FRONT_TIME);
+
+                /*robot.followTrajectorySequenceAsync(white1);
+                blockDuringMotion();*/
+
+                step++;
+            }
+
+            // Pick up white pixel
+            if (step == 106) {
+                effector.setDesiredState(Effector.EffectorState.REAR_INTAKE);
+                blockForMillis(Effector.REAR_INTAKE_TIME);
+
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
+                blockForMillis(Effector.STAGED_INTAKE_TIME * 2);
+
+                /*robot.followTrajectorySequenceAsync(white2to1);
+                blockDuringMotion();*/
+
+                effector.setDesiredState(Effector.EffectorState.HIGH_CENTER);
+                blockForMillis(Effector.REAR_INTAKE_TIME);
+
+                effector.setDesiredState(Effector.EffectorState.HIGH_CENTER_FORWARD);
+                blockForMillis(Effector.REAR_INTAKE_TIME);
+
+                effector.setDesiredState(Effector.EffectorState.DRIVING);
+
+                step++;
+            }
+
+            // Combine and pick up white and yellow pixels.
+            if (step == 107) {
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.INTAKE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+
+                robot.followTrajectorySequenceAsync(white2to1);
+                blockDuringMotion();
+
+                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
+                blockForMillis(Effector.SWEEP_FRONT_TIME);
+
+                effector.setDesiredState(Effector.EffectorState.INTAKE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
+                effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
+                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
+                blockForMillis(Effector.STAGED_INTAKE_TIME);
+                effector.setPincerPosition(frontPincerLeft, Effector.PincerState.INIT);
+                effector.setPincerPosition(frontPincerRight, Effector.PincerState.INIT);
+                effector.setDesiredState(Effector.EffectorState.DRIVING);
+
+                step++;
+            }
+
+            // Drive to score board.
+            if (step == 108) {
+                robot.followTrajectorySequenceAsync(scoreAfterWhitePx);
+                blockDuringMotion();
+
+                // Jump back to standard routine.
+                step = 6;
+            }
+
             // Prepare effector and raise lift.
             if (step == 6) {
                 lift.setLiftTarget(0.53, 1);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                sleep(Effector.STAGED_LIFT_TIME);
+                blockForMillis(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.SCORING);
 
                 backupTimer.reset();
@@ -284,10 +424,11 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
             // Place yellow pixel.
             if (step == 8) {
+                effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
                 effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
-                sleep(300);
+                blockForMillis(300);
                 effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-                sleep(Effector.STAGED_LIFT_TIME);
+                blockForMillis(Effector.STAGED_LIFT_TIME);
                 effector.setDesiredState(Effector.EffectorState.DRIVING);
                 lift.setLiftTarget(0, 1);
 
@@ -364,25 +505,25 @@ public class KardiaAutoRedFar extends LinearOpMode {
         telemetryUpdate();
 
         // Pick up preload pixels.
-        sleep(1200);
+        blockForMillis(1200);
         effector.setPincerPosition(frontPincerLeft, Effector.PincerState.GRIP);
         effector.setPincerPosition(frontPincerRight, Effector.PincerState.GRIP);
-        sleep(Effector.SWEEP_FRONT_TIME);
+        blockForMillis(Effector.SWEEP_FRONT_TIME);
         effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
         effector.setPincerPosition(pincerLeft, Effector.PincerState.RELEASE);
         effector.setPincerPosition(pincerRight, Effector.PincerState.RELEASE);
-        sleep(Effector.STAGED_INTAKE_TIME);
+        blockForMillis(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.INTAKE);
-        sleep(Effector.STAGED_INTAKE_TIME);
+        blockForMillis(Effector.STAGED_INTAKE_TIME);
         effector.setPincerPosition(pincerLeft, Effector.PincerState.GRIP);
         effector.setPincerPosition(pincerRight, Effector.PincerState.GRIP);
-        sleep(Effector.STAGED_INTAKE_TIME);
+        blockForMillis(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.STAGED_INTAKE);
         effector.setPincerPosition(frontPincerLeft, Effector.PincerState.RELEASE);
         effector.setPincerPosition(frontPincerRight, Effector.PincerState.RELEASE);
-        sleep(Effector.STAGED_INTAKE_TIME);
+        blockForMillis(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.DRIVING);
-        sleep(Effector.STAGED_INTAKE_TIME);
+        blockForMillis(Effector.STAGED_INTAKE_TIME);
         effector.setDesiredState(Effector.EffectorState.INIT);
 
         while (opModeInInit()) {
@@ -394,7 +535,7 @@ public class KardiaAutoRedFar extends LinearOpMode {
         robot.setPoseEstimate(startPose);
 
         effector.setDesiredState(Effector.EffectorState.STAGED_LIFT);
-        sleep(Effector.STAGED_LIFT_TIME);
+        blockForMillis(Effector.STAGED_LIFT_TIME);
         effector.setDesiredState(Effector.EffectorState.DRIVING);
     }
 
@@ -457,6 +598,15 @@ public class KardiaAutoRedFar extends LinearOpMode {
 
     private void blockDuringMotion() {
         while (opModeIsActive() && robot.isBusy()) {
+            robot.update();
+            telemetryUpdate();
+        }
+    }
+    
+    private void blockForMillis(long millis) {
+        ElapsedTime timer = new ElapsedTime();
+        timer.reset();
+        while (!isStopRequested() && timer.milliseconds() < millis) {
             robot.update();
             telemetryUpdate();
         }

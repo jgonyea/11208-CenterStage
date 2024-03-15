@@ -16,6 +16,7 @@ public class Drone {
     private double positionFired = 0.3767;
 
     private boolean launched = false;
+    private boolean launching = false;
     public boolean wasLaunched() {
         return launched;
     }
@@ -29,15 +30,20 @@ public class Drone {
     // Launches the drone.
     public void launch(Gamepad gamepad1, Gamepad gamepad2){
         // Requires both drivers to press X at the same time.
-        if (gamepad1.x && gamepad2.x && !launched) {
+        if (gamepad1.x && gamepad2.x && !launching) {
             this.droneLauncher.setPosition(positionFired);
             this.launched = true;
+            this.launching = true;
             this.timer.reset();
         }
 
         // Return servo to loading position.
         if (this.timer.seconds() > 2) {
             this.droneLauncher.setPosition(positionLoaded);
+
+            if (!(gamepad1.x || gamepad2.x)) {
+                this.launching = false;
+            }
         }
     }
 }

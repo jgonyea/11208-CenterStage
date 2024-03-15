@@ -17,6 +17,9 @@ public class Effector {
     private Servo frontPincerLeft;
     private Servo frontPincerRight;
     public enum EffectorState {
+        REAR_INTAKE,
+        HIGH_CENTER,
+        HIGH_CENTER_FORWARD,
         SCORING,
         STAGED_LIFT,
         DRIVING,
@@ -31,6 +34,8 @@ public class Effector {
     private final static double ARM_DRIVING_POSITION = 0.400;
     private final static double ARM_INTAKE_POSITION = 0.3711;
     private final static double ARM_SCORING_POSITION = 0.8806;
+    private final static double ARM_REAR_INTAKE_POSITION = 0.9761;
+    private final static double ARM_HIGH_CENTER_POSITION = 0.6978;
     private final static double ARM_STAGED_INTAKE_POSITION = 0.410;
     private final static double ARM_STAGED_LIFT_POSITION = 0.450;
 
@@ -38,6 +43,7 @@ public class Effector {
     private final static double HAND_DRIVING_POSITION = 0.72;
     private final static double HAND_INTAKE_POSITION = 0.4;
     private final static double HAND_SCORING_POSITION = 0.26;
+    private final static double HAND_REAR_INTAKE_POSITION = 0.4167;
 
     private final static double PINCERL_CLOSED_POSITION = 0.5067;
     private final static double PINCERR_CLOSED_POSITION = 0.4461;
@@ -59,9 +65,10 @@ public class Effector {
 
     // Timings
     private final ElapsedTime timer = new ElapsedTime();
-    public final static long SWEEP_FRONT_TIME = 50;
+    public final static long SWEEP_FRONT_TIME = 300;
     public final static long STAGED_INTAKE_TIME = 300;
     public final static long STAGED_LIFT_TIME = 500;
+    public final static long REAR_INTAKE_TIME = 1000;
 
     private EffectorState currentState = EffectorState.DRIVING;
     private EffectorState desiredState = EffectorState.DRIVING;
@@ -287,6 +294,27 @@ public class Effector {
                 wristRotator.setPosition(WRIST_SCORING_POSITION);
                 break;
 
+            case REAR_INTAKE:
+                armRotatorLeft.setPosition(ARM_REAR_INTAKE_POSITION);
+                armRotatorRight.setPosition(ARM_REAR_INTAKE_POSITION);
+                handActuator.setPosition(HAND_REAR_INTAKE_POSITION);
+                wristRotator.setPosition(WRIST_SCORING_POSITION);
+                break;
+
+            case HIGH_CENTER:
+                armRotatorLeft.setPosition(ARM_HIGH_CENTER_POSITION);
+                armRotatorRight.setPosition(ARM_HIGH_CENTER_POSITION);
+                handActuator.setPosition(HAND_REAR_INTAKE_POSITION);
+                wristRotator.setPosition(WRIST_SCORING_POSITION);
+                break;
+
+            case HIGH_CENTER_FORWARD:
+                armRotatorLeft.setPosition(ARM_INIT_POSITION);
+                armRotatorRight.setPosition(ARM_INIT_POSITION);
+                handActuator.setPosition(HAND_DRIVING_POSITION);
+                wristRotator.setPosition(WRIST_INTAKE_POSITION);
+                break;
+
             case INIT:
                 armRotatorLeft.setPosition(ARM_INIT_POSITION);
                 armRotatorRight.setPosition(ARM_INIT_POSITION);
@@ -379,6 +407,10 @@ public class Effector {
                 case SCORING:
                     if (desiredState == EffectorState.DRIVING || desiredState == EffectorState.STAGED_LIFT) {
                         nextPosition = EffectorState.STAGED_LIFT;
+                    } else if (desiredState == EffectorState.REAR_INTAKE) {
+                        nextPosition = EffectorState.REAR_INTAKE;
+                    } else if (desiredState == EffectorState.INIT) {
+                        nextPosition = EffectorState.INIT;
                     }
                     break;
                 case STAGED_LIFT:
@@ -389,6 +421,8 @@ public class Effector {
                     } else if (desiredState == EffectorState.INIT) {
                         nextPosition = EffectorState.INIT;
                         wristRotator.setPosition(WRIST_SCORING_POSITION);
+                    } else if (desiredState == EffectorState.REAR_INTAKE) {
+                        nextPosition = EffectorState.REAR_INTAKE;
                     }
                     break;
                 case DRIVING:
@@ -401,6 +435,8 @@ public class Effector {
                     } else if (desiredState == EffectorState.INIT) {
                         nextPosition = EffectorState.INIT;
                         wristRotator.setPosition(WRIST_SCORING_POSITION);
+                    } else if (desiredState == EffectorState.REAR_INTAKE) {
+                        nextPosition = EffectorState.REAR_INTAKE;
                     }
                     break;
                 case SWEEP_FRONT:
@@ -432,6 +468,22 @@ public class Effector {
                             nextPosition = EffectorState.INIT;
                         }
                     }
+                    break;
+                case REAR_INTAKE:
+                    if (desiredState == EffectorState.SCORING
+                            || desiredState == EffectorState.STAGED_LIFT
+                            || desiredState == EffectorState.DRIVING
+                            || desiredState == EffectorState.HIGH_CENTER) {
+                        nextPosition = desiredState;
+                    }
+                    break;
+                case HIGH_CENTER:
+                    // Todo: Add if statements
+                    nextPosition = desiredState;
+                    break;
+                case HIGH_CENTER_FORWARD:
+                    // Todo: Add if statements
+                    nextPosition = desiredState;
                     break;
                 default:
                     nextPosition = EffectorState.DRIVING;
